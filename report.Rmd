@@ -1,0 +1,32 @@
+---
+title: "CA Club Survey 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(magrittr)
+library(ggplot2)
+library(janitor)
+
+source("run.R")
+```
+
+# General
+## Respondents by Federation
+
+
+```{r by-federation, echo = FALSE, warning = FALSE}
+df_clean %>% 
+  count(`Your Federation`) %>% 
+  adorn_totals
+```
+
+# Club membership
+
+```{r total member histogram, echo=FALSE}
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
