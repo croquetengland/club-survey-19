@@ -43,7 +43,7 @@ tbl_GC_vs_AC_by_fed <- df_clean %>%
     NumGCOnly = sum(`How many players play GC only?`),
     NumACOnly = sum(`How many players play AC only?`),
     NumBoth = sum(`How many players play BOTH AC and GC?`),
-    NumConverted = sum(`How many of your existing GC players have taken up AC?`)
+    NumConverted = sum(`How many of your existing GC players have taken up AC?`, na.rm = TRUE)
   ) %>% 
   adorn_totals(where = "row")
 
@@ -74,14 +74,16 @@ tbl_enters_CA_events <- df_clean %>%
 # Feedback for the CA 1
 df_what_can_ca_do_better <- df_clean %>% 
   filter(!is.na(`What can the CA do better for your club?`)) %>% 
-  select(`Club Name`, `What can the CA do better for your club?`)
+  select(`Club Name`, `Your Federation`, `What can the CA do better for your club?`) %>% 
+  mutate(WordCount = sapply(strsplit(.$`What can the CA do better for your club?`, split = " "), length)) %>% 
+  filter(WordCount > 3)
 
 # Other feedback for the CA
-df_what_can_ca_do_better <- df_clean %>% 
+df_feedback_for_ca <- df_clean %>% 
   filter(!is.na(`What other feedback does your club have for the CA?`)) %>% 
-  select(`Club Name`, `What other feedback does your club have for the CA?`)
-  
-
+  select(`Club Name`, `Your Federation`, `What other feedback does your club have for the CA?`) %>% 
+  mutate(WordCount = sapply(strsplit(.$`What other feedback does your club have for the CA?`, split = " "), length)) %>% 
+  filter(WordCount > 3)
 
 
 

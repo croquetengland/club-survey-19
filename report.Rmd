@@ -9,6 +9,8 @@ library(dplyr)
 library(magrittr)
 library(ggplot2)
 library(janitor)
+library(plotly)
+library(DT)
 
 source("run.R")
 ```
@@ -18,15 +20,51 @@ source("run.R")
 
 
 ```{r by-federation, echo = FALSE, warning = FALSE}
-df_clean %>% 
-  count(`Your Federation`) %>% 
-  adorn_totals
+DT::datatable(df_clean %>% 
+                count(`Your Federation`) %>% 
+                adorn_totals)
 ```
+There are an additional ~22 entries waiting to be input plus paper copies as yet unprocessed.
 
 # Club membership
-
+Histogram of club memberships
 ```{r total member histogram, echo=FALSE}
-
+g_total_membership %>% ggplotly()
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+# Total membership types by Federation
+
+```{r, echo = FALSE}
+DT::datatable(tbl_membership_by_fed)
+```
+
+# GC only clubs
+
+```{r, echo = FALSE}
+DT::datatable(tbl_GC_only_by_fed)
+```
+# GC and AC by Federation
+
+```{r, echo = FALSE}
+DT::datatable(tbl_GC_vs_AC_by_fed)
+```
+
+# Taking up AC
+
+```{r, echo = FALSE}
+DT::datatable(tbl_taking_up_ac)
+```
+
+# Feedback
+```{r, echo = FALSE}
+DT::datatable(df_what_can_ca_do_better)
+```
+
+```{r, echo = FALSE}
+DT::datatable(df_feedback_for_ca)
+```
+
+
+
+
+
