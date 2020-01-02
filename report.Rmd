@@ -21,10 +21,12 @@ source("run.R")
 
 ```{r by-federation, echo = FALSE, warning = FALSE}
 DT::datatable(df_clean %>% 
-                count(`Your Federation`) %>% 
+                count(Federation) %>% 
                 adorn_totals)
 ```
-There are an additional ~22 entries waiting to be input plus paper copies as yet unprocessed.
+
+
+## Club ownership
 
 # Club membership
 Histogram of club memberships
@@ -43,6 +45,7 @@ DT::datatable(tbl_membership_by_fed)
 ```{r, echo = FALSE}
 DT::datatable(tbl_GC_only_by_fed)
 ```
+
 # GC and AC by Federation
 
 ```{r, echo = FALSE}
