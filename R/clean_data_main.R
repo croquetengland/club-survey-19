@@ -18,7 +18,7 @@ df_clean <- df_clean %>%
     n_MemSocial = `Of the total, how many are associate/social/non-playing?`,
     n_Mem2nd = `Of the total, how many are 2nd club members (i.e. their primary CA club is NOT your club)`,
     n_MemIdeal = `What is the ideal (maximum) number of members  for your club?`,
-    n_MemFull = `Are you full? ( ie you have a waiting list or easily replace leavers each year)`,
+    MemFull = `Are you full? ( ie you have a waiting list or easily replace leavers each year)`,
     n_MemWastage = `What is your average "wastage" (leavers) each year ?`,
     n_PlaysGC = `How many players play GC only?`,
     n_PlaysAC = `How many players play AC only?`,
@@ -67,15 +67,16 @@ df_clean <- df_clean %>%
     "Other"
   ))
 
-# Number of lawns total
+# Number of lawns total ----
 df_clean <- df_clean %>% 
   mutate(NumCourtsTotal = as.factor(
     ifelse(n_CourtsTotal >5, 
-           ">5", 
+           "5+", 
            n_CourtsTotal)
     )
   )
 
+# Check to see if these match
 df_clean %>% 
   select(ClubName,
          n_CourtsTotal,
@@ -83,5 +84,64 @@ df_clean %>%
          n_CourtsHalf,
          NumCourtsTotal) %>% 
   mutate(LawnsTot = n_CourtsFull + n_CourtsHalf, 
+         IsCorr = n_CourtsTotal == LawnsTot) 
+
+# correct Crawley CC
+df_clean$n_CourtsFull[str_detect(df_clean$ClubName, "Crawley")] <- 2
+
+# Populate new list of clubs with correct lawn count
+df_incorrect_lawn_count<- df_clean %>% 
+  select(ClubName,
+         n_CourtsTotal,
+         n_CourtsFull,
+         n_CourtsHalf,
+         NumCourtsTotal) %>% 
+  mutate(LawnsTot = n_CourtsFull + n_CourtsHalf, 
          IsCorr = n_CourtsTotal == LawnsTot) %>% 
-  View()
+  filter(IsCorr != T)
+
+# Croquet only club ----
+
+# amendments to be made if necessary
+
+# Plays year round ----
+strings1 <- c("indoor", "indoors")
+strings2 <- c("For many years we have only played during the typical croquet season, but this winter we are trialling staying open all year-round.",
+              "We aim to play all year round, but the lawns are often too wet to play in the winter.",
+              "We have a rough lawn which is open during the winter, but no formal sessions",
+              "In winter, play often restricted to certain lawns for maintenance/rest of lawns",
+              "My club runs sessions all year-round, weather permitting.")
+strings3 <- c("My club plays during the typical croquet season and closes for winter.",
+              "May to Septemebr")
+df_clean <- df_clean %>% 
+  mutate(YearRound = ifelse(
+    grepl(paste(strings1, collapse = "|"), x = PlaysYearRound, ignore.case = T),
+    "Plays indoors during winter.",
+    ifelse(
+      grepl(paste(strings2, collapse = "|"), x = PlaysYearRound, ignore.case = T),
+      "All year-round, weather permitting.",
+      ifelse(
+        grepl(paste(strings3, collapse = "|"), x = PlaysYearRound, ignore.case = T),
+        "Typical croquet season",
+        "Extended croquet season"
+      )
+    )
+  )
+  )
+
+# Ideal club membership ----
+string1 <- c(0, 999)
+df_clean <- df_clean %>% 
+  mutate(NumMemIdeal = gsub(".*-","",n_MemIdeal)) %>% 
+  mutate(NumMemIdeal = gsub("[^0-9\\.]","",NumMemIdeal)) %>% 
+  mutate(NumMemIdeal = as.integer(NumMemIdeal)) %>% 
+  mutate(NumMemIdeal = ifelse(NumMemIdeal %in% string1, NA, NumMemIdeal))
+
+# Wastage
+df_clean <- df_clean %>%
+  mutate(NumMemWastage  = case_when(
+    n_MemWastage > 0 & n_MemWastage <=5 ~ "5 or fewer",
+    n_MemWastage > 5 & n_MemWastage <= 10 ~ "5 to 10",
+    n_MemWastage > 10 & n_MemWastage < 999 ~ "10 or more",
+    TRUE ~ "Not Known"
+  ))

@@ -1,23 +1,40 @@
 ---
 title: "CA Club Survey 2019"
-output: html_document
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 2
+
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(dplyr)
+library(dplyr) # data manipulation
 library(magrittr)
-library(ggplot2)
 library(janitor)
+
+library(ggplot2) # data visualisation
 library(plotly)
 library(DT)
 
 source("run.R")
 ```
 
+# Summary
+
+## Notes on report
+* **All figures presented are provisional and subject to change following quality assurance.**
+* ASSUMPTION: all data submitted by clubs was correct and that data entry has been correct (but happy to be corrected).
+* Imputed some data where reasonable to do so - e.g. taken midpoints, taken upper limit of range.
+* Tried to keep transcriptions as honest as possible; some minor typo fixes.
+* Some numbers represent best estimates by clubs rather than actual numbers.
+* Some did not make sense (e.g. total no. of qualified coaches > no. of active coaches, or total courts not tallying). A few corrections have been made where obvious.
+
+
 # General
 ## Respondents by Federation
-
+This report currently includes duplicated entries for Worthing and Pinchbeck, and is missing an entry from Brodsworth Hall.
 
 ```{r by-federation, echo = FALSE, warning = FALSE}
 DT::datatable(df_clean %>% 
@@ -25,32 +42,153 @@ DT::datatable(df_clean %>%
                 adorn_totals)
 ```
 
+In total, excluding the unresolved issues above, we had **`r nrow(df_clean)-2 + 1` returns out of 193 clubs, a return rate of `r scales::percent((nrow(df_clean)-1)/193)`**.
 
-## Club ownership
+# Courts, membership and recruitment
 
-# Club membership
-Histogram of club memberships
-```{r total member histogram, echo=FALSE}
-g_total_membership %>% ggplotly()
+## Croquet-only club
+We asked clubs to indicate whether they were a croquet-only club or whether they were part of a wider establishment/sports club.
+
+```{r croquet-only, echo = FALSE, warning = FALSE}
+DT::datatable(df_clean %>% 
+                count(CroquetOnly, sort = TRUE)
+              )
 ```
 
-# Total membership types by Federation
+
+## Club ownership
+We asked clubs to indicate who owns the land their club is situated on.
+```{r club-ownership, echo = FALSE, warning = FALSE}
+g_club_land_ownership + coord_flip() + theme(legend.position = "bottom")
+```
+
+## Number of courts
+We asked clubs for the number of full and half size courts. The distribution of number of courts per club in each Federation is plotted below, and colour coded if all courts in that club are full size. 
+
+```{r num-courts, echo = FALSE, warning = FALSE}
+g_num_courts + facet_wrap(~Federation)
+```
+
+The majority of clubs in the CA have fewer than 3 courts - information which is not captured by the Club Annual Return (the CA currently defines a large club as having 2 full size courts or more).
+
+```{r echo=FALSE}
+df_clean %>% 
+  count(NumCourtsTotal) %>% 
+  mutate(Pctge = scales::percent(n/sum(n))) %>% 
+  DT::datatable()
+```
+
+Note that a small number of clubs have made an error in the number of courts declared - the total number does not equal to the sum of their full and half courts.
+
+```{r num-courts-error, echo = FALSE, warning = FALSE}
+DT::datatable(df_incorrect_lawn_count)
+```
+
+## Number of days club is in use.
+```{r club-usage, echo=FALSE}
+g_club_usage + scale_x_continuous("Num Days Club in Use", labels = as.character(1:7), breaks = 1:7)
+```
+
+This shows that, whilst there are a number of clubs which are in daily use, there is potential capacity for clubs to accommodate more members through sessions on additional days.
+
+## Club membership
+The histogram of club memberhsip numbers is plotted below.
+```{r total-member-histogram, echo=FALSE}
+g_total_membership + theme(legend.position = "bottom")
+```
+
+The number of members per lawn by Federation is calculated below, as well as the mean, max and min members per lawn across clubs in each Federation. Some clubs have 0 lawns and thus the max members per lawn in their Federations appear as Inf.
+
+```{r echo=FALSE}
+df_clean %>% 
+  mutate(MemPerLawn = n_MemTotal/n_CourtsTotal) %>%
+  group_by(Federation) %>% 
+  summarise(NumClubs = n(),
+            TotalMembers = sum(n_MemTotal),
+            TotalLawns = sum(n_CourtsTotal),
+            MembersPerLawn = round(TotalMembers/TotalLawns,1),
+            MaxMemPerLawn = round(max(MemPerLawn),1),
+            MinMemPerLawn = round(min(MemPerLawn),1)
+            ) %>% 
+  DT::datatable()
+```
+
+### Total membership types by Federation
+We asked clubs to state their total membership at 30 Sep 2019, along with estimates of how many members are of retired age, are Juniors (under 25 on 1 Jan 2019), are active, social, associate etc, and how many are 2nd club members paying their club levy elsewhere.
+
+The data on the 2nd club members has been used alongisde total memberership to calculate the theoretical number of unique individuals within the CA, broken down by Federation.
 
 ```{r, echo = FALSE}
 DT::datatable(tbl_membership_by_fed)
 ```
 
-# GC only clubs
+### Ideal memberships
+Clubs were asked to indicate whether they were full.
+```{r, echo = FALSE}
+DT::datatable(df_clean %>% count(Federation, MemFull, sort = TRUE) %>% 
+                spread(MemFull, n) %>% 
+                adorn_totals(where = "row"))
+```
+
+Alongside this question, clubs were asked what the ideal number of members was for their club. Where clubs have given a numeric answer, the percentage of their 2019 membership against their target is plotted below. The number of clubs who declared that they had no memberhsip limit were set to NA and these were removed from the plot.
+
+Where they provided a numeric range, the maxima of the numeric range was taken for simplicity. 
+
+```{r membership-percentage-full, echo=FALSE}
+g_membership_percentage_full + facet_wrap(~Federation)
+```
+
+### Wastage
+Most clubs have very few leavers each year. There were some comments from larger clubs who said the problem was in keeping members into the 2nd and 3rd season.
+
+```{r membership-wastage, echo=FALSE}
+g_member_wastage + facet_wrap(~Federation) + coord_flip()
+```
+
+### New member journey
+We asked the questions: What is the typical ‘new member journey’ into your club? How and when do you typically market and recruit for new members? 
+
+```{r, echo = FALSE}
+DT::datatable(df_new_member_journey)
+```
+
+More work on this section will be done to extract and group some of the common responses - e.g. word of mouth, visiting groups, open days etc.
+
+### Formal/informal structures to integrate new members
+
+```{r membership-integration, echo=FALSE}
+g_new_mem_integration + coord_flip()
+```
+
+Other methods listed below:
+```{r, echo = FALSE}
+DT::datatable(df_structures_to_integrate_new_members %>% 
+                filter(!is.na(Other)) %>% 
+                select(-NewMemIntegration)
+              )
+```
+
+### Recruitment issues
+We asked the questions: Do you struggle to recruit each year? What are the main recruitment issues facing your club? Is the trend getting better or worse?
+```{r, echo = FALSE}
+DT::datatable(df_recruitment_issues)
+```
+
+More work to present the general themes to be completed.
+# The balance of GC and AC
+
+## GC and AC by Federation
+
+```{r, echo = FALSE}
+DT::datatable(tbl_GC_vs_AC_by_fed)
+```
+
+## GC only clubs
 
 ```{r, echo = FALSE}
 DT::datatable(tbl_GC_only_by_fed)
 ```
 
-# GC and AC by Federation
-
-```{r, echo = FALSE}
-DT::datatable(tbl_GC_vs_AC_by_fed)
-```
 
 # Taking up AC
 
@@ -58,10 +196,108 @@ DT::datatable(tbl_GC_vs_AC_by_fed)
 DT::datatable(tbl_taking_up_ac)
 ```
 
+## What form of croquet are beginners introduced to?
+
+```{r which-croquet-for-beginners, echo=FALSE}
+g_which_croquet_for_beginners + coord_flip()
+```
+
+Other forms listed below:
+```{r, echo = FALSE}
+DT::datatable(df_croquet_for_beginners %>% 
+                filter(!is.na(Other)) %>% 
+                select(-WhichCroquetForBeginners)
+              )
+```
+
+## How are existing GC players encouraged to take up AC?
+```{r how-gc-to-ac, echo=FALSE}
+g_how_gc_to_ac + coord_flip()
+```
+
+Other forms listed below:
+```{r, echo = FALSE}
+DT::datatable(df_convert_GC_to_AC %>% 
+                filter(!is.na(Other)) %>% 
+                select(-HowGCToAC)
+              )
+```
+
+# Officials, competitions and clothing
+The number of active coaches and referees by Federation is presented below. Note that for AC, assistant referees are included in this figure.
+```{r, echo = FALSE}
+DT::datatable(tbl_coaches_referees)
+```
+
+## Club handicappers
+To be completed.
+
+## Competitions
+```{r competitions, echo=FALSE}
+g_competitions + coord_flip()
+```
+
+Other forms listed below:
+```{r, echo = FALSE}
+DT::datatable(df_competitions %>% 
+                filter(!is.na(Other)) %>% 
+                select(-Competitions)
+              )
+```
+
+## Numbers entering CA Fixtures Calendar competitions
+```{r, echo = FALSE}
+DT::datatable(tbl_enters_CA_events)
+```
+
+## Wearing of whites rule
+To be completed.
+
+# Marketing and external engagement
+## How do clubs market themselves
+```{r marketing, echo=FALSE}
+g_marketing + coord_flip()
+```
+
+Other methods listed below:
+```{r, echo = FALSE}
+DT::datatable(df_marketing %>% 
+                filter(!is.na(Other)) %>% 
+                select(-Marketing)
+              )
+```
+
+## Corporate, charity events and local groups
+We asked clubs: Does your club run corporate events, charity events or host local groups (e.g. schools, U3A, businesses) on a regular basis? Please describe in more detail.
+```{r, echo = FALSE}
+DT::datatable(df_events)
+```
+
+More work required to extract common themes and insights from this section.
+
+## Grants
+We asked clubs: Does your club attract sponsorship or grants from outside the CA? Please give more details. Are they event-specific or year-round?
+```{r, echo = FALSE}
+DT::datatable(df_grants)
+```
+
+More work required to extract common themes and insights from this section.
+
+## National Croquet Day
+We asked clubs: Has your club taken in National Croquet Day in the past? Was it useful for your club and will your club take part in National Croquet Week 2020?
+```{r, echo = FALSE}
+DT::datatable(df_ncd)
+```
+
+More work required to extract common themes and insights from this section.
+
 # Feedback
+We asked clubs what the CA can do better for them.
 ```{r, echo = FALSE}
 DT::datatable(df_what_can_ca_do_better)
 ```
+
+We asked what general feedback clubs had for the CA. Some clubs used this opportunity to elaborate specific details on their club returns.
 
 ```{r, echo = FALSE}
 DT::datatable(df_feedback_for_ca)

@@ -67,8 +67,11 @@ df_temp$`Of the total, how many are active players?`[str_detect(df_temp$`Club Na
 
 #' Known duplicates - Pinchbeck, Worthing - need to consolidate the duplicate mismatches
 df_temp <- df_temp %>% 
-  filter(!`Club Name` %in% c("I have to fill this in to see the form",
-                             "Pinchbeck C.C."))
+  filter(!`Club Name` %in% c("I have to fill this in to see the form"))
+
+# df_temp %>% 
+#   filter(str_detect(`Club Name`, "Pinchbeck")) %>% 
+#   View()
 
 # One further duplicate from Pinchbeck and one from Worthing
 #' Need to link to unique name and clubDbID on CA system
