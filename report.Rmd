@@ -1,5 +1,7 @@
 ---
-title: "CA Club Survey 2019"
+title: "The Croquet Assocation Club Survey 2019"
+author: "Eugene Chang, Marketing Committee. Commissioned by CA Council"
+date: "`r format(Sys.time(), '%d %B %Y')`"
 output: 
   html_document:
     toc: true
@@ -19,9 +21,44 @@ library(plotly)
 library(DT)
 
 source("run.R")
+
+colorize <- function(x, color) {
+  if (knitr::is_latex_output()) {
+    sprintf("\\textcolor{%s}{%s}", color, x)
+  } else if (knitr::is_html_output()) {
+    sprintf("<span style='color: %s;'>%s</span>", color, 
+      x)
+  } else x
+}
 ```
 
 # Summary
+This is the first club-level survey conducted by the Croquet Association (CA), with the aim to record the 'State of the Croquet Nation'. Clubs were asked to report on membership numbers, general activity and about their operations, and could provide feedback to the CA on issues. There were 7 sections in total.
+
+###Courts, Membership and Recruitment
+
+`r nrow(df_clean)-2 + 1` of 193 clubs (`r scales::percent((nrow(df_clean)-1)/193)`) submitted a return, representing `r tbl_membership_by_fed$NumPlayers %>% last()` total members: `r tbl_membership_by_fed$NumRetired %>% last()` retired, `r tbl_membership_by_fed$NumU25s %>% last()` U25 and `r tbl_membership_by_fed$NumUnique %>% last()` unique members (excluding 2nd club members). 
+
+The majority of clubs have 2 or fewer lawns, are in use 5+ days per week, and are yet to hit membership capacity. Average club membership is `r mean(df_clean$n_MemTotal) %>% round(1)`, median `r mean(df_clean$n_MemTotal)`. Most clubs, despite low membership wastage, face recruitment issues of some sort - seeing little return on volunteer effort, low conversion to full membership or problems reaching a younger demographic. There are a number of recruitment initiatives from some clubs which differ from the typical 'single open day in early season with follow-up beginners course', which could be promoted.
+
+### The balance of GC and AC
+
+The majority of clubs play both GC and AC, with a handful of AC-only clubs and sizeable number of GC-only clubs. The total number  of GC only/AC only/both players are `r tbl_GC_vs_AC_by_fed$NumGCOnly %>% last()`/`r tbl_GC_vs_AC_by_fed$NumACOnly %>% last()`/`r tbl_GC_vs_AC_by_fed$NumBoth %>% last()`. Around a quarter of clubs (mostly in SWF, NWF, YCF) play Short Croquet, and there are approximately `r tbl_taking_up_ac$NumSCPlayers %>% last()` people who play Short Croquet.
+
+### Officials, competiions and clothing
+
+Clubs reported on the number of coaches, AC/GC referees and handicappers within their club; the number of clubs without these respectively were `r df_clean %>% filter(n_CoachesActive ==0) %>% nrow`/`r df_clean %>% filter(n_RefsQualRegAC ==0) %>% nrow`/`r df_clean %>% filter(n_RefsQualRegGC ==0) %>% nrow`/TO BE COMPLETED, and these tended to be in smaller or more remote clubs. Around `r tbl_enters_CA_events$Percentage %>% last()` of members enter CA Fixtures Calendar events, with a higher percentage in the East Anglian and East Midlands Federations, and lower in the West Midlands. Section on whites TO BE COMPLETED.
+
+
+### Marketing and External Engagement
+Clubs generally promote themselves via signs, word of mouth and websites; social media is used by fewer than 1/3 of clubs. Many clubs are active in engaging local groups, with U3A, Rotary, WI and Probus the most commonly listed, and a range of others including local businesses, Scout/Brownie groups or disability/health-based groups. Most clubs were not active in attracting sponsorship, although a number have been successful in applying for grants from local government, community funds, Lottery/Sport England/Sport Wales and some local businesses. National Croquet Day has been tried and tested by clubs with mixed results, and a number will be participating in National Croquet Week 2020.
+
+### Feedback
+The final free text section revealed a wide range of ways in which clubs thought the CA could do better, and some common themes in the feedback section. These included greater marketing and promotion of the sport, better communication of CA changes, calls for making the CA website more intuitive,issues surrounding competitive play, addressing the north/south divide and improving CA services. In the feedback section, many clubs highlighted that their 'typical' members feel the CA offers poor value for money, and is irrelevant to them. Further suggestions ranged from Gazette content and delivery, to addressing common issues faced by clubs.
+
+## Tips and tricks
+* Use the left hand table of contents to expand particular sections
+* Tables in this report are interactive - click on a column heading to sort asc/desc, and use the search box to filter
 
 ## Notes on report
 * **All figures presented are provisional and subject to change following quality assurance.**
@@ -42,7 +79,7 @@ DT::datatable(df_clean %>%
                 adorn_totals)
 ```
 
-In total, excluding the unresolved issues above, we had **`r nrow(df_clean)-2 + 1` returns out of 193 clubs, a return rate of `r scales::percent((nrow(df_clean)-1)/193)`**.
+In total, including the unresolved issues above, we had **`r nrow(df_clean)-2 + 1` returns out of 193 clubs, a return rate of `r scales::percent((nrow(df_clean)-1)/193)`**.
 
 # Courts, membership and recruitment
 
@@ -59,17 +96,22 @@ DT::datatable(df_clean %>%
 ## Club ownership
 We asked clubs to indicate who owns the land their club is situated on.
 ```{r club-ownership, echo = FALSE, warning = FALSE}
-g_club_land_ownership + coord_flip() + theme(legend.position = "bottom")
+g_club_land_ownership + coord_flip() + 
+  theme(legend.position = "bottom",
+        legend.title=element_blank(), 
+        legend.key.size=unit(10,"point")
+        ) #+ 
+  # guides(col=guide_legend(ncol=4))
 ```
 
 ## Number of courts
-We asked clubs for the number of full and half size courts. The distribution of number of courts per club in each Federation is plotted below, and colour coded if all courts in that club are full size. 
+We asked clubs for the number of full and half size courts in their club. The distribution of number of courts per club in each Federation is plotted below, and colour coded by whether all courts in that club are full size. 
 
 ```{r num-courts, echo = FALSE, warning = FALSE}
 g_num_courts + facet_wrap(~Federation)
 ```
 
-The majority of clubs in the CA have fewer than 3 courts - information which is not captured by the Club Annual Return (the CA currently defines a large club as having 2 full size courts or more).
+The raw numbers are plotted below, which shows that the majority of clubs in the CA have fewer than 3 courts. Data is held by the CA on number of courts, but is not obvious by using Club Annual Return info, which asks for declaration of large/small club only (the CA currently defines a large club as having 2 full size courts or more).
 
 ```{r echo=FALSE}
 df_clean %>% 
@@ -85,19 +127,27 @@ DT::datatable(df_incorrect_lawn_count)
 ```
 
 ## Number of days club is in use.
+Clubs were asked how many days their club is in use during a typical week - this was to determine whether clubs which self declare as 'full' could in fact accommodate more members through additional sessions. The chart below shows the breakdown by Federation. 
 ```{r club-usage, echo=FALSE}
 g_club_usage + scale_x_continuous("Num Days Club in Use", labels = as.character(1:7), breaks = 1:7)
 ```
 
-This shows that, whilst there are a number of clubs which are in daily use, there is potential capacity for clubs to accommodate more members through sessions on additional days.
+This data shows that clubs in South West, South East and London, and East Anglian Federations tend to be busiest, with a reasonable number of clubs only active a few days per week. This suggests that, whilst there are a number of clubs which are in daily use, there is capacity for clubs to accommodate more members through sessions on additional days.
+
+Further analysis of membership capacity and club activity is considered later.
 
 ## Club membership
-The histogram of club memberhsip numbers is plotted below.
+The histogram of club membership numbers is plotted below. This shows a wide range from the 10s to the 200s; breakdowns by Federation can also be plotted if required.
 ```{r total-member-histogram, echo=FALSE}
-g_total_membership + theme(legend.position = "bottom")
+g_total_membership+
+  # coord_flip() +
+  # facet_wrap(~Federation) + 
+  theme(legend.position = "bottom")
 ```
 
-The number of members per lawn by Federation is calculated below, as well as the mean, max and min members per lawn across clubs in each Federation. Some clubs have 0 lawns and thus the max members per lawn in their Federations appear as Inf.
+The mean number of members per club is `r mean(df_clean$n_MemTotal) %>% round(1)` and the median is `r median(df_clean$n_MemTotal)`.
+
+The number of members per lawn by Federation is calculated below, as well as the mean, max and min members per lawn across clubs in each Federation. The average members per lawn overall is `r round(sum(df_clean$n_MemTotal)/sum(df_clean$n_CourtsTotal),1)`. Some clubs have 0 lawns and thus the max members per lawn in their Federations appear as Inf.
 
 ```{r echo=FALSE}
 df_clean %>% 
@@ -106,10 +156,11 @@ df_clean %>%
   summarise(NumClubs = n(),
             TotalMembers = sum(n_MemTotal),
             TotalLawns = sum(n_CourtsTotal),
-            MembersPerLawn = round(TotalMembers/TotalLawns,1),
-            MaxMemPerLawn = round(max(MemPerLawn),1),
-            MinMemPerLawn = round(min(MemPerLawn),1)
+            MemPerLawn = round(TotalMembers/TotalLawns,1),
+            MaxMPL = round(max(MemPerLawn),1),
+            MinMPL = round(min(MemPerLawn),1)
             ) %>% 
+  adorn_totals() %>% 
   DT::datatable()
 ```
 
@@ -125,8 +176,8 @@ DT::datatable(tbl_membership_by_fed)
 ### Ideal memberships
 Clubs were asked to indicate whether they were full.
 ```{r, echo = FALSE}
-DT::datatable(df_clean %>% count(Federation, MemFull, sort = TRUE) %>% 
-                spread(MemFull, n) %>% 
+DT::datatable(df_clean %>% count(MemFull, sort = TRUE) %>% 
+                # spread(MemFull, n) %>% 
                 adorn_totals(where = "row"))
 ```
 
@@ -138,6 +189,20 @@ Where they provided a numeric range, the maxima of the numeric range was taken f
 g_membership_percentage_full + facet_wrap(~Federation)
 ```
 
+Including all of those who said 'yes' or 'almost', there were `r df_clean %>% filter(str_detect(MemFull, regex("yes|almost", ignore_case = TRUE))) %>% nrow()` clubs out of `r nrow(df_clean)` responses who said they were full - `r scales::percent(df_clean %>% filter(str_detect(MemFull, regex("yes|almost", ignore_case = TRUE))) %>% nrow()/nrow(df_clean))` of clubs.
+
+For these clubs which have declared themselves full, we consider the distribution by Federation and how many days their club is in use.
+
+```{r}
+df_clean %>% 
+  filter(str_detect(MemFull, regex("yes|almost", ignore_case = TRUE))) %>% 
+  count(Federation, n_DaysClubInUse) %>% 
+  spread(n_DaysClubInUse, n, fill = 0L) %>% 
+  adorn_totals() %>% 
+  DT::datatable()
+```
+This shows that most of these clubs are at full capacity, with some which have potential for further expansion through additional days of play.
+
 ### Wastage
 Most clubs have very few leavers each year. There were some comments from larger clubs who said the problem was in keeping members into the 2nd and 3rd season.
 
@@ -145,20 +210,14 @@ Most clubs have very few leavers each year. There were some comments from larger
 g_member_wastage + facet_wrap(~Federation) + coord_flip()
 ```
 
-### New member journey
-We asked the questions: What is the typical ‘new member journey’ into your club? How and when do you typically market and recruit for new members? 
-
-```{r, echo = FALSE}
-DT::datatable(df_new_member_journey)
-```
-
-More work on this section will be done to extract and group some of the common responses - e.g. word of mouth, visiting groups, open days etc.
 
 ### Formal/informal structures to integrate new members
 
 ```{r membership-integration, echo=FALSE}
 g_new_mem_integration + coord_flip()
 ```
+
+This shows that most clubs run club socials, and then a range of methods to integrate beginners into their club.
 
 Other methods listed below:
 ```{r, echo = FALSE}
@@ -168,20 +227,76 @@ DT::datatable(df_structures_to_integrate_new_members %>%
               )
 ```
 
+### New member journey
+We asked the questions: What is the typical ‘new member journey’ into your club? How and when do you typically market and recruit for new members? A short thematic summary of this topic is presented.
+
+**Most clubs recruit through word-of-mouth, flyers, open days and inviting local groups e.g. U3A, WI**
+
+A number of clubs use National Croquet Day as a focal point, whilst others run their own open days or as part of local fairs. Some clubs have mentioned that open days provide very little return, but continue to do this each year.
+
+**The method and period of club recruitment varies widely**
+
+Whilst the typical method is to run a single open day in early season with follow-up beginners courses, clubs do take other alternative methods. A number of clubs don't run specific recruitment campaigns, preferring to let newcomers join club sessions, or arranging ad hoc sessions depending on interest. Others clubs recruit season-long or over an extended period, and some alternative methods are described below:
+
+* Evening sessions for those who work (Preston),
+* Short temporary/trial membership (Ealing, Rother Valley, Bowdon, Budleigh),
+* Monthly 'club-afternoons' throughout seasons which are open to newcomers (Shrewsbury),
+* Reduced membership fees in first years (various),
+* Different recruitment drives depending on early/mid/late season (York),
+* Corporate/group taster sessions work better than individual recruitment (Beverly),
+* 'Club in a club' - the club offers a mobile plays at each others houses as well as at club (Norwich).
+
+Raw responses are presented below.
+
+```{r, echo = FALSE}
+DT::datatable(df_new_member_journey)
+```
+
+
 ### Recruitment issues
 We asked the questions: Do you struggle to recruit each year? What are the main recruitment issues facing your club? Is the trend getting better or worse?
+
+**Membership recruitment is a struggle**
+
+Clubs generally try hard to recruit members with little success despite the efforts put in. Some clubs suffer from a poor catchment area whilst others get very little return on time investment. The clubs who don't struggle with numbers through the door suffer from other issues, such as getting members who are not retired.
+
+**It is hard to recruit younger members**
+
+This was raised by some `r nrow(num_age_affected)` clubs who are struggling to recruit working age or younger players. One club mentioned the age profile of their membership meant that infirmity or death is likely to impact them in next few years, and thus *we are loath to turn away any prospective members and work to ‘tweak’ playing arrangements in order to accommodate larger numbers*.
+
+**Playing croquet requires too much time commitment**
+
+Despite newcomers enjoying the sport, some struggle to maintain interest due to the the time required to play.
+
+**Time restrictions on club play affect recruitment**
+
+Some clubs have only weekday use of their facilities and this affects their ability to recruit working age players.
+
+**Image perceptions**
+Clubs have said that they suffer at grassroots level because of the national perception of croquet as a posh pastime for the rich.
+
+**Quality of courts affects recruitment**
+Some clubs believe that the quality of their playing surface is detrimenting their ability to recruit and retain members - these clubs would potentially benefit from speaking to their Federation Development Officers to see what help or advice is available.
+
+**Multi-sport clubs struggle due to lack of single-sport membership category**
+
+**Retaining new joiners beyond introductory membership**
+Compton and Nottingham have reported successful recruitment through their existing structures, but mention that many of these new joiners do not then go on to full membership after the introductory period.
+
 ```{r, echo = FALSE}
 DT::datatable(df_recruitment_issues)
 ```
 
-More work to present the general themes to be completed.
-# The balance of GC and AC
 
+# The balance of GC and AC
+**Note that numbers in this section may double count those who are members of multiple clubs (see section on Membership above).**
 ## GC and AC by Federation
 
 ```{r, echo = FALSE}
 DT::datatable(tbl_GC_vs_AC_by_fed)
 ```
+
+This suggests that 
 
 ## GC only clubs
 
@@ -191,12 +306,18 @@ DT::datatable(tbl_GC_only_by_fed)
 
 
 # Taking up AC
+Clubs were asked whether they played Short Croquet, how many members played Short Croquet, and how many members who started with GC converted to AC.
+
+**Note that numbers in this section may double count those who are members of multiple clubs (see section on Membership above).**
 
 ```{r, echo = FALSE}
 DT::datatable(tbl_taking_up_ac)
 ```
 
+This suggests that around a quarter of clubs currently play Short Croquet, and that these are mostly distributed in the North West, Yorkshire and South West Federations. There are around 600 existing Short Croquet players, and around 400 players who have started as GC players before picking up AC.
+
 ## What form of croquet are beginners introduced to?
+GC is the predominant code that beginners are introduced to. Some clubs said that they introduced other forms of croquet, or both codes.
 
 ```{r which-croquet-for-beginners, echo=FALSE}
 g_which_croquet_for_beginners + coord_flip()
@@ -211,6 +332,8 @@ DT::datatable(df_croquet_for_beginners %>%
 ```
 
 ## How are existing GC players encouraged to take up AC?
+Clubs were asked how they get GC-only players to take up AC. This section had a low return rate of answers; clubs used a mixture of One-Ball and AC directly, and provided further comments.
+
 ```{r how-gc-to-ac, echo=FALSE}
 g_how_gc_to_ac + coord_flip()
 ```
@@ -223,19 +346,29 @@ DT::datatable(df_convert_GC_to_AC %>%
               )
 ```
 
+**Ricochet** is mentioned by a number of clubs as an alternative method, whilst some clubs use HiLo and/or Alternate Stroke Doubles to get players involved.
+
 # Officials, competitions and clothing
 The number of active coaches and referees by Federation is presented below. Note that for AC, assistant referees are included in this figure.
 ```{r, echo = FALSE}
 DT::datatable(tbl_coaches_referees)
 ```
 
+The number of clubs who declared themselves without any active coaches was `r df_clean %>% filter(n_CoachesActive ==0) %>% nrow`, without any AC referees (inc assistant refs) was `r df_clean %>% filter(n_RefsQualRegAC ==0) %>% nrow`, without GC refereees was `r df_clean %>% filter(n_RefsQualRegGC ==0) %>% nrow`, and without handicappers is TO BE COMPLETED.
+
+These numbers will be useful, if used in conjunction with CA figures, to assess our current supply of coaches and referees, and set suitable policies on this.
+
 ## Club handicappers
 To be completed.
 
 ## Competitions
+Clubs were asked what sort of competitions/tournaments they run at their club - this was to assess the awareness and prevalence of competitive play.
+
 ```{r competitions, echo=FALSE}
 g_competitions + coord_flip()
 ```
+
+Most clubs run internal season-long competitions and enter Federation events, with a large number also running single day or weekend events. Around 1/3 of the clubs organise CA Fixtures Calendar events or participates in CA national competitions.
 
 Other forms listed below:
 ```{r, echo = FALSE}
@@ -245,19 +378,28 @@ DT::datatable(df_competitions %>%
               )
 ```
 
+This 'Other' section indicates that a number of clubs play in inter-club friendlies, which was not included as a category. Some clubs run no formal competitions, perhaps only hosting club sessions.
+
 ## Numbers entering CA Fixtures Calendar competitions
+**Note that numbers in this section may double count those who are members of multiple clubs (see section on Membership above).**
+
 ```{r, echo = FALSE}
 DT::datatable(tbl_enters_CA_events)
 ```
+
+Around `r tbl_enters_CA_events %>% last()` of club members overall take part in CA Fixtures Calendar competitions, with East Midlands and East Anglian Federations above average, and West Midlands well below the national average.
 
 ## Wearing of whites rule
 To be completed.
 
 # Marketing and external engagement
 ## How do clubs market themselves
+Clubs were asked how they market themselves.
 ```{r marketing, echo=FALSE}
 g_marketing + coord_flip()
 ```
+
+Around 120 (75%) of clubs had their own website, with around 110 using local media to promote themselves. Surprisingly a significant minority of respondents don't have a club sign or signposts to their club.
 
 Other methods listed below:
 ```{r, echo = FALSE}
@@ -267,21 +409,55 @@ DT::datatable(df_marketing %>%
               )
 ```
 
+Of these, some are dropping fliers in doctors' surgeries (Eardisley) and some have contacted local companies/hotels (Bude), whilst others have attended local church fetes and community taster days. East Dorset sent an example of a high quality printed business card which looks very smart and could potentially be adopted by others for little cost.
+
 ## Corporate, charity events and local groups
 We asked clubs: Does your club run corporate events, charity events or host local groups (e.g. schools, U3A, businesses) on a regular basis? Please describe in more detail.
+
+These were some of the common groups/events:
+
+* U3A (~43 clubs)
+* Women's Institute (WI) (~30 clubs)
+* Rotary Club (~21 clubs)
+* Probus (~10 clubs)
+* 41 club
+* Scouts/Brownies
+* Round Table
+* Charity fundraisers
+* Parkinsons
+* MENSA
+* Blind and Partially Sighted
+* Local government or companies
+* Ladies' social or golf groups
+* Church groups
+* Mental health groups
+* Youth groups
+
+There were a number of ideas provided by clubs, such as hosting sessions followed by cheese and wine or running events for village fetes and festivals. Some details provided about how much is charged and what the sessions involve.
+
+Original responses provided below.
+
 ```{r, echo = FALSE}
 DT::datatable(df_events)
 ```
 
-More work required to extract common themes and insights from this section.
 
 ## Grants
 We asked clubs: Does your club attract sponsorship or grants from outside the CA? Please give more details. Are they event-specific or year-round?
 ```{r, echo = FALSE}
-DT::datatable(df_grants)
+DT::datatable(df_grants #%>% 
+                #select(-ClubName)
+              )
 ```
 
-More work required to extract common themes and insights from this section.
+Most clubs who responded in this section had received from grants from:
+
+* Local Authorities/Councils
+* Local charities/community foundations
+* National Lottery/Sport England/Sport Wales
+* Local businesses (e.g. Development grant from Manchester Airport, retirement home group,)
+
+Some national companies which were mentioned were WH Smith, Tesco Bags for Help, Waitrose Community Matters Fund, Coors Brewery.
 
 ## National Croquet Day
 We asked clubs: Has your club taken in National Croquet Day in the past? Was it useful for your club and will your club take part in National Croquet Week 2020?
@@ -289,15 +465,116 @@ We asked clubs: Has your club taken in National Croquet Day in the past? Was it 
 DT::datatable(df_ncd)
 ```
 
-More work required to extract common themes and insights from this section.
+Most clubs provided a response to this section, with a range of answers. Many respondents have taken part in National Croquet Day in the past with limited success (both with numbers on the day, and converting interest to members), and have said that it is difficult to enthuse volunteers to make it happen. Poor weather can make a big difference to the event.
+
+A number of clubs have found the date of NCD too late for them to align with their season, and have held their own taster weekends; others have aligned with local festivals and events to run taster sessions.
+
+A reasonable number of clubs have said they will be participating in NCW 2020, and it will be interesting to see whether the move to a week format yields more positive results for clubs taking part.
 
 # Feedback
+
+## What can the CA do better for clubs?
 We asked clubs what the CA can do better for them.
+
+Responses in this section ranged from '*Nothing, thank you*' to detailed feedback. A full thematic analysis is yet to be conducted; however some of the insights are drawn out below, approximately by strategic area
+
+**Promotion/Marketing**
+
+* `r colorize("Do something about the CA website", "blue")`. See above, but also making it more attractive to would-be players, eg with postcode-based 'find a club' feature.
+* `r colorize("Change public perception of croquet", "blue")`. This includes removing the 'posh' image of croquet and promoting the health benefits.
+* `r colorize("Publicity and marketing material to promote the game - available for clubs to use", "blue")`. This also includes promotion in national magazines of target groups e.g. U3A and SAGA. Promote the wellbeing aspect of croquet.
+* `r colorize("Raising the profile of croquet, including getting more time on national media", "blue")`. Getting listed on BBC Get Inspired and similar sites, with a reliable and responsive referral system for enquiries. Getting croquet televised.
+* `r colorize("Promote croquet at schools (esp primary), Clinical Commissioning Groups and groups e.g. U3A", "blue")`
+* `r colorize("Generate regular media content (videos etc) to share via social media pages", "blue")`
+
+
+**Communications**
+
+* `r colorize("Do something about the CA website", "blue")`. This was the most highly requested item. This includes making it more user-friendly and easier to navigate, and more straightforward to implement member registration/data protection declarations.
+* `r colorize("Gazette", "blue")` Make the contents of the Gazette more interesting to the average member
+* `r colorize("Better communication about changes", "blue")`. More information about when changes occur within the CA e.g. rules changes, new law books - don't assume everyone reads the website.
+* `r colorize("CA services and what is available", "blue")`. There were requests for advice which is on the CA website already which suggests that it is difficult to find.
+
+
+**Tournaments/competitive play**
+
+* `r colorize("Promote short croquet", "blue")`
+* `r colorize("Promotion of competitive play", "blue")` 
+* `r colorize("Better promotion of national tournaments and events", "blue")`
+* `r colorize("Tips for shorter versions of AC play", "blue")`
+* `r colorize("Encourage more events/formats for 3 lawn clubs so they can host events", "blue")`
+
+**North/South divide and club isolation**
+
+* `r colorize("CA representatives actively visiting clubs", "blue")`. Discuss their issues (and successes). Show the CA is interested.
+* `r colorize("Encouraging players to travel to the North for events", "blue")`
+* `r colorize("Visits from accomplished players to isolated clubs", "blue")`
+* `r colorize("Get rid of London/SE bias", "blue")`. Some clubs felt the allocation of Council members by members per Federation was unfair, leading to an under-representation of clubs outside London/SE. They felt the issues in smaller clubs with imperfect lawns were not promoted/understood enough as a result, and recommended that the CA could learn more from promoting croquet on smaller lawns, which may be more appropriate for older members.
+
+
+**CA services**
+
+* `r colorize("Be more proactive with the CA shop", "blue")`. Roadshows and demos, which might increase sales if clubs within an area promoted together.
+* `r colorize("Do more to show what the CA is doing for the average club member", "blue")`. More information about what the CA can do, e.g. provide technical advice, grants, loans of equipment. More support for club coaches
+* `r colorize("More support re advice or campaigning for complex issues e.g. security of tenure with landowners", "blue")`. Many clubs are facing similar issues, such as arranging a lease with landlords. Should clubs be a Charity or Community Amateur Sports Club?
+* `r colorize("Review club membership", "blue")`. Introduce more tiers of club membership - the jump from small to large club is huge. Review the per capita fees. Consider categorising based on membership headcount rather than number of courts.
+* `r colorize("Expand and improve Tournament Entry System", "blue")`. Can it be flexible to accommodate those who play 1 day of a 2 day event for calculating entry fee/levy? Can it be expanded to manage internal competitions?
+* `r colorize("Create a register of coaches/handicappers who are prepared to travel outside their Federation to coach", "blue")`. This needs referral to relevant Federations or to Coaching/Handicap Committees.
+
+The original responses are tabled below.
 ```{r, echo = FALSE}
 DT::datatable(df_what_can_ca_do_better)
 ```
 
-We asked what general feedback clubs had for the CA. Some clubs used this opportunity to elaborate specific details on their club returns.
+
+## Feedback for the CA
+We asked what general feedback clubs had for the CA. Some clubs used this opportunity to elaborate specific details on their club returns, and some of the feedback overlaps with answers for the question above. I have tried to draw out new themes from the present feedback.
+
+**What has the CA done for us?**
+
+Many smaller clubs felt disenfranchised with the CA, in that their members feel they get no tangible benefit from CA membership, and that the CA is irrelevant to them. Some comments below:
+
+* `r colorize("How to address perception that the CA centres on A-class competitions and young players only, not the 'average' member", "blue")`.
+* `r colorize("Question on per-capita rates for new struggling clubs.", "blue")`. See particular question from SWF club.
+* `r colorize("Perception that public liability is the only thing the clubs benefit from via CA club membership", "blue")`
+
+A lot of comments centred around the Gazette and how Standard Members will shortly lose their paper copies.
+
+* `r colorize("Keep hard copy Gazette", "blue")`. Provide these to clubs for their clubhouses as an alternative.
+* `r colorize("Address how to keep Gazette relevant when it goes online-only", "blue")`
+* `r colorize("Make Gazette content more interesting for run-of-the-mill clubs", "blue")`. Too much focus on the elite side and competition results
+* `r colorize("The CA should work harder on advertising in the Gazette rather than scrapping paper Gazette due to cost reasons", "blue")`. E.g. Get grass and equipment companies advertising in the Gazette
+
+**Improve CA operations**
+
+* `r colorize("Membership database not synchronised with other databases", "blue")`. Vagaries such as an individual listed as belong to a club, but the club membership list not containing that individual.
+* `r colorize("Improved automation for clubs setting up CA Fixtures", "blue")`. Currently a manual process highly subject to human error.
+* `r colorize("Make the CA website more mobile-friendly", "blue")`
+
+**Proactively address common issues faced by clubs**
+
+* `r colorize("Better guidance on initial setting of AC handicaps", "blue")`. Algorithm is for a full lawn but beginners are recommended to start on small lawns.
+* `r colorize("Guidance for club handicappers and empowerment to adjust handicaps before competing externally", "blue")`. Discrepancies noticed - would appreciate better guidance and training alonside monitoring and evaluation.
+* `r colorize("Advice on a suitable GC/AC coaching pathway for beginners - what should come first", "blue")`
+* `r colorize("Support for remote clubs that have no formal beginners coaching or mentoring", "blue")`
+* `r colorize("Advice on attracing younger members", "blue")`
+* `r colorize("Promote Ricochet as a step between GC and AC", "blue")`
+* `r colorize("What to do about obtaining qualified referees", "blue")`. Please see original comment on this and follow-up directly to clarify if needed.
+* `r colorize("Advice on how best to utilise a bowling lawn space of 42x42 yards", "blue")`. Currently uses 35x21 yards, would 4 21x21 lawns be acceptable?
+* `r colorize("Introduce a grading system for lawn quality/lawn speeds", "blue")`
+
+**Marketing**
+
+* `r colorize("Get rid of whites image", "blue")`
+
+**Competitive croquet**
+
+* `r colorize("Feedback on running Federation leagues in larger Federations", "blue")`
+* `r colorize("Create a National schools competition", "blue")`. Presumably for GC
+* `r colorize("Reduce tournament levy as it penalises active tournament clubs", "blue")`
+
+
+Original results are tabled below.
 
 ```{r, echo = FALSE}
 DT::datatable(df_feedback_for_ca)

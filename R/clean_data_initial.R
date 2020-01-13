@@ -18,8 +18,9 @@ df_clean <- df_clean %>%
   mutate_if(is.character, funs(str_replace(., "&", "and")))
 
 
-# Change some columns to numeric
+# Change some columns to numeric or integer
 df_clean <- df_clean %>% 
-  mutate(`If so, how many players play Short Croquet?` = as.numeric(`If so, how many players play Short Croquet?`)
+  mutate(`If so, how many players play Short Croquet?` = as.numeric(`If so, how many players play Short Croquet?`),
+        `How many active coaches do you have?` = as.integer(`How many active coaches do you have?`)
   )
 

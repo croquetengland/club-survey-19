@@ -43,7 +43,8 @@ source("R/clean_data_main.R")
 
 # * Club land ownership----
 g_club_land_ownership <- df_clean %>% 
-  ggplot(aes(x = Federation,fill = `Club Land Ownership`)) +
+  mutate(`Club Land Ownership` = str_replace(`Club Land Ownership`, " \\(.*\\)", "")) %>% 
+  ggplot(aes(x = Federation, fill = `Club Land Ownership`)) +
   geom_bar()
 
 # * Plays year-round----
@@ -72,7 +73,7 @@ g_club_usage <- df_clean %>%
 g_total_membership <- df_clean %>% 
   ggplot(aes(x = n_MemTotal, fill = NumCourtsTotal)) + 
   geom_histogram(binwidth = 10, colour = "black") + 
-  facet_wrap(~Federation)
+  scale_x_continuous(breaks=seq(0,max(df_clean$n_MemTotal), 20)) 
 
 tbl_membership_by_fed <- df_clean %>% 
   group_by(Federation) %>% 
@@ -134,6 +135,12 @@ df_recruitment_issues <- df_clean %>%
   select(ClubName, Federation, Recruitment_issues = `Do you struggle to recruit each year? What are the main recruitment issues facing your club? Is the trend getting better or worse?`) %>% 
   mutate(WordCount = sapply(strsplit(.$Recruitment_issues, split = " "), length)) %>% # word count
   filter(WordCount > 3)
+
+strings1 <- c("young","retire","old","infirm","death") #ignored 'age' as it can be misleading e.g. words containing 'age' such as 'manage'
+num_age_affected <- df_clean %>% 
+  filter(str_detect(`Do you struggle to recruit each year? What are the main recruitment issues facing your club? Is the trend getting better or worse?`, 
+                    regex(paste(strings1, collapse = "|"), ignore_case = TRUE))) %>% 
+  select(ClubName, Federation, `Do you struggle to recruit each year? What are the main recruitment issues facing your club? Is the trend getting better or worse?`)
 
 
 # GC and AC ----
@@ -247,10 +254,10 @@ g_competitions <-
 tbl_enters_CA_events <- df_clean %>% 
   group_by(Federation) %>% 
   summarise(TotalMembers = sum(n_MemTotal, na.rm = TRUE),
-            EntersCAFixtures = sum(n_EntersFCTournaments, na.rm = TRUE),
-            Percentage = scales::percent(EntersCAFixtures/TotalMembers)
+            EntersCAFixtures = sum(n_EntersFCTournaments, na.rm = TRUE)
             ) %>% 
-  adorn_totals(where ="row")
+  adorn_totals(where ="row") %>% 
+  mutate(Percentage = scales::percent(EntersCAFixtures/TotalMembers))
 
 # Marketing ----
 # * How do clubs market themselves ----
