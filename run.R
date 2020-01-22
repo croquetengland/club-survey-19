@@ -14,6 +14,8 @@ library(tidytext)
 
 df <- read_xlsx("data/CA Clubs survey 2019 (Responses).xlsx")
 
+df_fullclublist <- read_xlsx("data/ClubsListMatched_2019_12_09.xlsx")
+
 split_checklist <- function(df){
   df %>% 
     select(ClubName, Federation, split) %>% 
@@ -25,12 +27,12 @@ split_checklist <- function(df){
 # Initial data cleaning ----
 source("R/clean_data_initial.R")
 
+# Process amendments to submissions ----
+source("R/amend_club_data.R")
+
 # drop name of contact and email
 df_clean <- df_clean %>% 
   select(-(3:5))
-
-# Process amendments to submissions ----
-source("R/amend_club_data.R")
 
 df_pre_amend <- df_clean
 df_clean <- df_temp
@@ -55,9 +57,9 @@ g_plays_year_round <- df_clean %>%
 # * Number of courts----
 g_num_courts <- df_clean %>% 
   select(ClubName, Federation, n_CourtsTotal, n_CourtsFull, n_CourtsHalf, NumCourtsTotal) %>% 
-  mutate(FullLawnsOnly = n_CourtsHalf == 0 & n_CourtsTotal > 0) %>% 
-  # gather(key, TotalNumberOfLawns, n_CourtsFull:n_CourtsHalf) %>% 
-  ggplot(aes(x = NumCourtsTotal, fill = FullLawnsOnly)) + 
+  mutate(FullCourtsOnly = n_CourtsHalf == 0 & n_CourtsTotal > 0) %>% 
+  # gather(key, TotalNumberOfCourts, n_CourtsFull:n_CourtsHalf) %>% 
+  ggplot(aes(x = NumCourtsTotal, fill = FullCourtsOnly)) + 
   geom_bar()
 
 # * Number of full size courts
@@ -221,7 +223,7 @@ g_how_gc_to_ac <-
 # * Number of coaches and refs ----
 tbl_coaches_referees <- df_clean %>% 
   group_by(Federation) %>% 
-  summarise(AciveCoaches = sum(as.numeric(n_CoachesActive), na.rm = TRUE),
+  summarise(ActiveCoaches = sum(as.numeric(n_CoachesActive), na.rm = TRUE),
             QualCoaches = sum(n_CoachesQual, na.rm = TRUE),
             QualRefs_AC = sum(n_RefsQualRegAC, na.rm = TRUE),
             QualRefs_GC = sum(n_RefsQualRegGC, na.rm = TRUE),

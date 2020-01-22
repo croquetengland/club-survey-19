@@ -37,9 +37,9 @@ This is the first club-level survey conducted by the Croquet Association (CA), w
 
 ###Courts, Membership and Recruitment
 
-`r nrow(df_clean)-2 + 1` of 193 clubs (`r scales::percent((nrow(df_clean)-1)/193)`) submitted a return, representing `r tbl_membership_by_fed$NumPlayers %>% last()` total members: `r tbl_membership_by_fed$NumRetired %>% last()` retired, `r tbl_membership_by_fed$NumU25s %>% last()` U25 and `r tbl_membership_by_fed$NumUnique %>% last()` unique members (excluding 2nd club members). 
+`r nrow(df_clean)` of 193 clubs (`r scales::percent((nrow(df_clean)-1)/193)`) submitted a return, representing `r tbl_membership_by_fed$NumPlayers %>% last()` total members: `r tbl_membership_by_fed$NumRetired %>% last()` retired, `r tbl_membership_by_fed$NumU25s %>% last()` U25 and `r tbl_membership_by_fed$NumUnique %>% last()` unique members (excluding 2nd club members). 
 
-The majority of clubs have 2 or fewer lawns, are in use 5+ days per week, and are yet to hit membership capacity. Average club membership is `r mean(df_clean$n_MemTotal) %>% round(1)`, median `r mean(df_clean$n_MemTotal)`. Most clubs, despite low membership wastage, face recruitment issues of some sort - seeing little return on volunteer effort, low conversion to full membership or problems reaching a younger demographic. There are a number of recruitment initiatives from some clubs which differ from the typical 'single open day in early season with follow-up beginners course', which could be promoted.
+The majority of clubs have 2 or fewer courts, are in use 5+ days per week, and are yet to hit membership capacity. Average club membership is `r mean(df_clean$n_MemTotal) %>% round(1)`, median `r mean(df_clean$n_MemTotal)`. Most clubs, despite low membership wastage, face recruitment issues of some sort - seeing little return on volunteer effort, low conversion to full membership or problems reaching a younger demographic. There are a number of recruitment initiatives from some clubs which differ from the typical 'single open day in early season with follow-up beginners course', which could be promoted.
 
 ### The balance of GC and AC
 
@@ -123,7 +123,7 @@ df_clean %>%
 Note that a small number of clubs have made an error in the number of courts declared - the total number does not equal to the sum of their full and half courts.
 
 ```{r num-courts-error, echo = FALSE, warning = FALSE}
-DT::datatable(df_incorrect_lawn_count)
+DT::datatable(df_incorrect_court_count)
 ```
 
 ## Number of days club is in use.
@@ -147,18 +147,18 @@ g_total_membership+
 
 The mean number of members per club is `r mean(df_clean$n_MemTotal) %>% round(1)` and the median is `r median(df_clean$n_MemTotal)`.
 
-The number of members per lawn by Federation is calculated below, as well as the mean, max and min members per lawn across clubs in each Federation. The average members per lawn overall is `r round(sum(df_clean$n_MemTotal)/sum(df_clean$n_CourtsTotal),1)`. Some clubs have 0 lawns and thus the max members per lawn in their Federations appear as Inf.
+The number of members per court by Federation is calculated below, as well as the mean, max and min members per court across clubs in each Federation. The average members per court overall is `r round(sum(df_clean$n_MemTotal)/sum(df_clean$n_CourtsTotal),1)`. Some clubs have 0 courts and thus the max members per court in their Federations appear as Inf.
 
 ```{r echo=FALSE}
 df_clean %>% 
-  mutate(MemPerLawn = n_MemTotal/n_CourtsTotal) %>%
+  mutate(MemPerCourt = n_MemTotal/n_CourtsTotal) %>%
   group_by(Federation) %>% 
   summarise(NumClubs = n(),
             TotalMembers = sum(n_MemTotal),
-            TotalLawns = sum(n_CourtsTotal),
-            MemPerLawn = round(TotalMembers/TotalLawns,1),
-            MaxMPL = round(max(MemPerLawn),1),
-            MinMPL = round(min(MemPerLawn),1)
+            TotalCourts = sum(n_CourtsTotal),
+            MemPerCourt = round(TotalMembers/TotalCourts,1),
+            MaxMPL = round(max(MemPerCourt),1),
+            MinMPL = round(min(MemPerCourt),1)
             ) %>% 
   adorn_totals() %>% 
   DT::datatable()
@@ -290,6 +290,7 @@ DT::datatable(df_recruitment_issues)
 
 # The balance of GC and AC
 **Note that numbers in this section may double count those who are members of multiple clubs (see section on Membership above).**
+
 ## GC and AC by Federation
 
 ```{r, echo = FALSE}
@@ -380,14 +381,14 @@ DT::datatable(df_competitions %>%
 
 This 'Other' section indicates that a number of clubs play in inter-club friendlies, which was not included as a category. Some clubs run no formal competitions, perhaps only hosting club sessions.
 
-## Numbers entering CA Fixtures Calendar competitions
+## Numbers entering CA Fixtures Calendar tournaments
 **Note that numbers in this section may double count those who are members of multiple clubs (see section on Membership above).**
 
 ```{r, echo = FALSE}
 DT::datatable(tbl_enters_CA_events)
 ```
 
-Around `r tbl_enters_CA_events %>% last()` of club members overall take part in CA Fixtures Calendar competitions, with East Midlands and East Anglian Federations above average, and West Midlands well below the national average.
+Around `r tbl_enters_CA_events$Percentage %>% last()` of club members overall take part in CA Fixtures Calendar competitions, with East Midlands and East Anglian Federations above average, and West Midlands well below the national average.
 
 ## Wearing of whites rule
 To be completed.
@@ -502,14 +503,14 @@ Responses in this section ranged from '*Nothing, thank you*' to detailed feedbac
 * `r colorize("Promotion of competitive play", "blue")` 
 * `r colorize("Better promotion of national tournaments and events", "blue")`
 * `r colorize("Tips for shorter versions of AC play", "blue")`
-* `r colorize("Encourage more events/formats for 3 lawn clubs so they can host events", "blue")`
+* `r colorize("Encourage more events/formats for 3 court clubs so they can host events", "blue")`
 
 **North/South divide and club isolation**
 
 * `r colorize("CA representatives actively visiting clubs", "blue")`. Discuss their issues (and successes). Show the CA is interested.
 * `r colorize("Encouraging players to travel to the North for events", "blue")`
 * `r colorize("Visits from accomplished players to isolated clubs", "blue")`
-* `r colorize("Get rid of London/SE bias", "blue")`. Some clubs felt the allocation of Council members by members per Federation was unfair, leading to an under-representation of clubs outside London/SE. They felt the issues in smaller clubs with imperfect lawns were not promoted/understood enough as a result, and recommended that the CA could learn more from promoting croquet on smaller lawns, which may be more appropriate for older members.
+* `r colorize("Get rid of London/SE bias", "blue")`. Some clubs felt the allocation of Council members by members per Federation was unfair, leading to an under-representation of clubs outside London/SE. They felt the issues in smaller clubs with imperfect courts were not promoted/understood enough as a result, and recommended that the CA could learn more from promoting croquet on smaller courts, which may be more appropriate for older members.
 
 
 **CA services**
@@ -553,15 +554,15 @@ A lot of comments centred around the Gazette and how Standard Members will short
 
 **Proactively address common issues faced by clubs**
 
-* `r colorize("Better guidance on initial setting of AC handicaps", "blue")`. Algorithm is for a full lawn but beginners are recommended to start on small lawns.
+* `r colorize("Better guidance on initial setting of AC handicaps", "blue")`. Algorithm is for a full court but beginners are recommended to start on small courts.
 * `r colorize("Guidance for club handicappers and empowerment to adjust handicaps before competing externally", "blue")`. Discrepancies noticed - would appreciate better guidance and training alonside monitoring and evaluation.
 * `r colorize("Advice on a suitable GC/AC coaching pathway for beginners - what should come first", "blue")`
 * `r colorize("Support for remote clubs that have no formal beginners coaching or mentoring", "blue")`
 * `r colorize("Advice on attracing younger members", "blue")`
 * `r colorize("Promote Ricochet as a step between GC and AC", "blue")`
 * `r colorize("What to do about obtaining qualified referees", "blue")`. Please see original comment on this and follow-up directly to clarify if needed.
-* `r colorize("Advice on how best to utilise a bowling lawn space of 42x42 yards", "blue")`. Currently uses 35x21 yards, would 4 21x21 lawns be acceptable?
-* `r colorize("Introduce a grading system for lawn quality/lawn speeds", "blue")`
+* `r colorize("Advice on how best to utilise a bowling court space of 42x42 yards", "blue")`. Currently uses 35x21 yards, would 4 21x21 courts be acceptable?
+* `r colorize("Introduce a grading system for court quality/court speeds", "blue")`
 
 **Marketing**
 

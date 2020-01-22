@@ -57,6 +57,8 @@ df_temp$`How many days a week is your club in use, during a 'typical' week?`[str
 df_temp$`How many young person members do you have?`[str_detect(df_temp$`Club Name`, "Southport")] <- 0
 df_temp$`Of the total, how many are active players?`[str_detect(df_temp$`Club Name`, "Southport")] <- 69
 
+#' Cheltenham - following email chain to clarify
+df_temp$`Approximately how many of these are of retirement age?`[str_detect(df_temp$`Club Name`, "Cheltenham")] <- 158
 
 # Known issues and assumptions to sort out ----
 #' Imputed some data where reasonable to do so - e.g. taken midpoints, taken upper limit of range was two numbers
@@ -65,15 +67,20 @@ df_temp$`Of the total, how many are active players?`[str_detect(df_temp$`Club Na
 #' ASSUMPTION: all data submitted by clubs was correct and that data entry has been correct (but happy to be corrected)
 #' Used code '999' in some numerical fields where there was no limit or answer unclear
 
-#' Known duplicates - Pinchbeck, Worthing - need to consolidate the duplicate mismatches
+#' Known duplicates - Pinchbeck, Worthing - chosen to keep entries completed by chairs (some discrepancies in data submitted in duplicates)
 df_temp <- df_temp %>% 
   filter(!`Club Name` %in% c("I have to fill this in to see the form"))
 
-# df_temp %>% 
-#   filter(str_detect(`Club Name`, "Pinchbeck")) %>% 
-#   View()
+df_temp <- df_temp %>% 
+  filter(!(str_detect(`Club Name`, "Pinchbeck") & # Pinchbeck - 2 duplicates where person completing is NOT chair
+             !str_detect(`Your position at your club`, "Chair")
+           )
+         ) %>% 
+  filter(!(str_detect(`Club Name`, "Worthing") & # Worthing - 1 duplicate where person completing is NOT chair
+             !str_detect(`Your position at your club`, "Chair")
+           )
+         )
 
-# One further duplicate from Pinchbeck and one from Worthing
 #' Need to link to unique name and clubDbID on CA system
 
 

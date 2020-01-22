@@ -67,7 +67,7 @@ df_clean <- df_clean %>%
     "Other"
   ))
 
-# Number of lawns total ----
+# Number of courts total ----
 df_clean <- df_clean %>% 
   mutate(NumCourtsTotal = as.factor(
     ifelse(n_CourtsTotal >5, 
@@ -83,21 +83,21 @@ df_clean %>%
          n_CourtsFull,
          n_CourtsHalf,
          NumCourtsTotal) %>% 
-  mutate(LawnsTot = n_CourtsFull + n_CourtsHalf, 
-         IsCorr = n_CourtsTotal == LawnsTot) 
+  mutate(CourtsTot = n_CourtsFull + n_CourtsHalf, 
+         IsCorr = n_CourtsTotal == CourtsTot) 
 
 # correct Crawley CC
 df_clean$n_CourtsFull[str_detect(df_clean$ClubName, "Crawley")] <- 2
 
-# Populate new list of clubs with correct lawn count
-df_incorrect_lawn_count<- df_clean %>% 
+# Populate new list of clubs with correct court count
+df_incorrect_court_count<- df_clean %>% 
   select(ClubName,
          n_CourtsTotal,
          n_CourtsFull,
          n_CourtsHalf,
          NumCourtsTotal) %>% 
-  mutate(LawnsTot = n_CourtsFull + n_CourtsHalf, 
-         IsCorr = n_CourtsTotal == LawnsTot) %>% 
+  mutate(CourtsTot = n_CourtsFull + n_CourtsHalf, 
+         IsCorr = n_CourtsTotal == CourtsTot) %>% 
   filter(IsCorr != T)
 
 # Croquet only club ----
