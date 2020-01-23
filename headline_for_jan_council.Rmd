@@ -1,0 +1,101 @@
+---
+title: "The Croquet Assocation Club Survey 2019 - Headlines for Jan Council"
+author: "Eugene Chang, Marketing Committee. Commissioned by CA Council"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 2
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr) # data manipulation
+library(magrittr)
+library(janitor)
+
+library(ggplot2) # data visualisation
+library(plotly)
+library(DT)
+library(kableExtra)
+
+source("run.R")
+
+colorize <- function(x, color) {
+  if (knitr::is_latex_output()) {
+    sprintf("\\textcolor{%s}{%s}", color, x)
+  } else if (knitr::is_html_output()) {
+    sprintf("<span style='color: %s;'>%s</span>", color, 
+      x)
+  } else x
+}
+```
+
+# Summary
+This is the first club-level survey conducted by the Croquet Association (CA), with the aim to record the 'State of the Croquet Nation'. Clubs were asked to report on membership numbers, general activity and about their operations, and could provide feedback to the CA on issues. There were 7 sections in total.
+
+**Figures in this report are “of those Clubs responding to this survey” rather than referring to the totals across the CA. Scaling figures by the proportion of club returns nationally/per Federation would give a national/Federation estimate.**
+
+###Courts, Membership and Recruitment
+
+`r nrow(df_clean)` of 193 clubs (`r scales::percent((nrow(df_clean)-1)/193)`) submitted a return, representing `r tbl_membership_by_fed$NumPlayers %>% last()` total members: `r tbl_membership_by_fed$NumRetired %>% last()` retired, `r tbl_membership_by_fed$NumU25s %>% last()` U25 and `r tbl_membership_by_fed$NumUnique %>% last()` unique members (excluding 2nd club members). 
+
+The summary table of total memberships by Federation is presented below:
+```{r, echo = FALSE}
+DT::datatable(tbl_membership_by_fed)
+```
+
+The majority of clubs have 2 or fewer courts, are in use 5+ days per week, and are yet to hit membership capacity. Average club membership is `r mean(df_clean$n_MemTotal) %>% round(1)`, median `r median(df_clean$n_MemTotal) %>% round(1)`. Most clubs, despite low membership wastage, face recruitment issues of some sort - seeing little return on volunteer effort, low conversion to full membership or problems reaching a younger demographic. There are a number of recruitment initiatives from some clubs which differ from the typical 'single open day in early season with follow-up beginners course', which could be promoted.
+
+### The balance of GC and AC
+
+The majority of clubs play both GC and AC, with a handful of AC-only clubs and sizeable number of GC-only clubs. The total number  of GC only/AC only/both players are as follows (note that there is a discrepancy to the total membership in the summary table due to data quality issues).
+
+```{r, echo = FALSE}
+tbl_GC_vs_AC_by_fed  %>% 
+  select(NumGCOnly, NumACOnly, NumBoth) %>% 
+  tail(1) %>% 
+  gather(Category, n) %>% 
+  mutate(Percent = scales::percent(n/sum(n), suffix = "")) %>% 
+  adorn_totals() %>% 
+  knitr::kable() %>% 
+  kable_styling()
+```
+<!-- r tbl_GC_vs_AC_by_fed$NumGCOnly %>% last()`/`r tbl_GC_vs_AC_by_fed$NumACOnly %>% last()`/`r tbl_GC_vs_AC_by_fed$NumBoth %>% last()`.  -->
+
+
+Around a quarter of clubs (mostly in SWF, NWF, YCF) play Short Croquet, and there are approximately `r tbl_taking_up_ac$NumSCPlayers %>% last()` people who play Short Croquet.
+
+### Officials, competiions and clothing
+
+Clubs reported on the number of coaches and AC/GC referees within their club; the number of clubs without these respectively were `r df_clean %>% filter(n_CoachesActive ==0) %>% nrow`/`r df_clean %>% filter(n_RefsQualRegAC ==0) %>% nrow`/`r df_clean %>% filter(n_RefsQualRegGC ==0) %>% nrow`, and these tended to be in smaller or more remote clubs. 
+
+
+Around `r tbl_enters_CA_events$Percentage %>% last()` of members enter CA Fixtures Calendar events, with a higher percentage in the East Anglian and East Midlands Federations, and lower in the West Midlands. 
+
+The section on club handicappers and whites are yet to be analysed.
+
+
+### Marketing and External Engagement
+Clubs generally promote themselves via signs, word of mouth and websites; social media is used by fewer than 1/3 of clubs. Many clubs are active in engaging local groups, with U3A, Rotary, WI and Probus the most commonly listed, and a range of others including local businesses, Scout/Brownie groups or disability/health-based groups. 
+
+Most clubs were not active in attracting sponsorship, although a number have been successful in applying for grants from local government, community funds, Lottery/Sport England/Sport Wales and some local businesses. 
+
+National Croquet Day has been tried and tested by clubs with mixed results, and a number will be participating in National Croquet Week 2020.
+
+### Feedback
+The final free text section revealed a wide range of ways in which clubs thought the CA could do better, and some common themes in the feedback section. These included greater marketing and promotion of the sport, better communication of CA changes, calls for making the CA website more intuitive,issues surrounding competitive play, addressing the north/south divide and improving CA services. 
+
+In the feedback section, many clubs highlighted that their 'typical' members feel the CA offers poor value for money, and is irrelevant to them. Further suggestions ranged from Gazette content and delivery, to addressing common issues faced by clubs.
+
+## Notes on report
+* **All figures presented are provisional and subject to change following quality assurance.**
+* ASSUMPTION: all data submitted by clubs was correct and that data entry has been correct (but happy to be corrected).
+* Imputed some data where reasonable to do so - e.g. taken midpoints, taken upper limit of range.
+* Tried to keep transcriptions as honest as possible; some minor typo fixes.
+* Some numbers represent best estimates by clubs rather than actual numbers.
+* Some data returns did not make sense (e.g. no. GC only + no. AC only + no. GC & AC players not equalling total or active no. members in the club, total no. of qualified coaches > no. of active coaches, or total courts not tallying). A few corrections have been made where obvious. **No attempt has been made to correct these figures.**
+
+
