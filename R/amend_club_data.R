@@ -57,6 +57,9 @@ df_temp$`How many days a week is your club in use, during a 'typical' week?`[str
 df_temp$`How many young person members do you have?`[str_detect(df_temp$`Club Name`, "Southport")] <- 0
 df_temp$`Of the total, how many are active players?`[str_detect(df_temp$`Club Name`, "Southport")] <- 69
 
+#' Typo on Bury St Edmunds - should be 38 active members not 382
+df_temp$`Of the total, how many are active players?`[str_detect(df_temp$`Club Name`, "Bury St Edmunds")] <- 38
+
 #' Cheltenham - following email chain to clarify
 df_temp$`Approximately how many of these are of retirement age?`[str_detect(df_temp$`Club Name`, "Cheltenham")] <- 158
 

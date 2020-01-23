@@ -259,7 +259,7 @@ tbl_enters_CA_events <- df_clean %>%
             EntersCAFixtures = sum(n_EntersFCTournaments, na.rm = TRUE)
             ) %>% 
   adorn_totals(where ="row") %>% 
-  mutate(Percentage = scales::percent(EntersCAFixtures/TotalMembers))
+  mutate(Percentage = scales::percent(EntersCAFixtures/TotalMembers, accuracy = 0.1))
 
 # Marketing ----
 # * How do clubs market themselves ----

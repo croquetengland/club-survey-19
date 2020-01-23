@@ -144,4 +144,5 @@ df_clean <- df_clean %>%
     n_MemWastage > 5 & n_MemWastage <= 10 ~ "5 to 10",
     n_MemWastage > 10 & n_MemWastage < 999 ~ "10 or more",
     TRUE ~ "Not Known"
-  ))
+  )) %>% 
+  mutate(NumMemWastage = factor(NumMemWastage, levels = c("5 or fewer", "5 to 10", "10 or more", "Not Known")))
