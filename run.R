@@ -14,7 +14,7 @@ library(tidytext)
 
 df <- read_xlsx("data/CA Clubs survey 2019 (Responses).xlsx")
 
-df_fullclublist <- read_xlsx("data/ClubsListMatched_2019_12_09.xlsx")
+# df_fullclublist <- read_xlsx("data/ClubsListMatched_2019_12_09.xlsx")
 
 split_checklist <- function(df){
   df %>% 
@@ -88,6 +88,7 @@ tbl_membership_by_fed <- df_clean %>%
     NumU25s = sum(n_MemYoung),
     NumUnique = NumPlayers - Num2ndClub
   ) %>% 
+  select(1:3,8,6, everything()) %>% 
   adorn_totals(where = "row")
 
 # * Ideal membership----
@@ -231,6 +232,21 @@ tbl_coaches_referees <- df_clean %>%
             ) %>% 
   ungroup() %>% 
   adorn_totals()
+
+# * Number of handicappers ----
+tbl_handicappers <- df_clean %>%
+  group_by(Federation) %>% 
+  summarise(
+    Clubs = n(),
+    wo_HCer = sum(HC_AC_reg_Q + HC_AC_inf_Q + HC_GC_reg_Q + HC_GC_inf_Q + HC_both_Q == 0),
+    AC_Reg = sum(HC_AC_reg_Q),
+    AC_Inf = sum(HC_AC_inf_Q),
+    GC_Reg = sum(HC_GC_reg_Q),
+    GC_Inf = sum(HC_GC_inf_Q),
+    Both_Reg = sum(HC_AC_reg_Q & HC_GC_reg_Q & HC_both_Q),
+    Both_Eith = sum(((!HC_AC_reg_Q & HC_GC_reg_Q) | (HC_AC_reg_Q & !HC_GC_reg_Q)) & HC_both_Q),
+    Both_Inf = sum((!HC_AC_reg_Q & !HC_GC_reg_Q) & HC_both_Q)
+  )
 
 # * Competitions ----
 df_competitions <- df_clean %>%

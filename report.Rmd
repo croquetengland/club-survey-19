@@ -20,6 +20,7 @@ library(ggplot2) # data visualisation
 library(plotly)
 library(DT)
 library(kableExtra)
+library(forcats) # reordering factors
 
 source("run.R")
 
@@ -33,19 +34,51 @@ colorize <- function(x, color) {
 }
 ```
 
-# Summary
-This is the first club-level survey conducted by the Croquet Association (CA), with the aim to record the 'State of the Croquet Nation'. Clubs were asked to report on membership numbers, general activity and about their operations, and could provide feedback to the CA on issues. There were 7 sections in total.
+### Tips for reading this report
+
+* Use the left hand table of contents to expand particular sections
+* Tables in this report are interactive - click on a column heading to sort asc/desc, and use the search box to filter
+
+# Executive summary
+This is the first club-level survey conducted by the Croquet Association (CA), that will enable Council to best formulate future policies for the wealth and growth of the sport. 
+
+Clubs were asked to report on membership numbers, general activity and about their operations, and could provide feedback to the CA on issues. There were 7 sections in total.
 
 **Figures in this report are “of those Clubs responding to this survey” rather than referring to the totals across the CA. Scaling figures by the proportion of club returns nationally/per Federation would give a national/Federation estimate.**
 
+*Many thanks to Frances Colman, Kevin Carter, Ian Vincent & Samir Patel for feedback/constructive comments in compiling the final report.*
+
 ###Courts, Membership and Recruitment
 
-`r nrow(df_clean)` of 193 clubs (`r scales::percent((nrow(df_clean)-1)/193)`) submitted a return, representing `r tbl_membership_by_fed$NumPlayers %>% last()` total members: `r tbl_membership_by_fed$NumRetired %>% last()` retired, `r tbl_membership_by_fed$NumU25s %>% last()` U25 and `r tbl_membership_by_fed$NumUnique %>% last()` unique members (excluding 2nd club members). 
+`r nrow(df_clean)` of 210 Full and Affiliate clubs (`r scales::percent((nrow(df_clean))/210)`) submitted a return, representing `r tbl_membership_by_fed$NumPlayers %>% last()` total members: `r tbl_membership_by_fed$NumRetired %>% last()` retired, `r tbl_membership_by_fed$NumU25s %>% last()` U25 and `r tbl_membership_by_fed$NumUnique %>% last()` unique members (excluding 2nd club members). 
 
-The summary table of total memberships by Federation is presented below:
+The pattern of memberships is consistent across Federations - clubs typically have a high proportion of active players, most of whom are of retirement age, and very few who belong to multiple clubs. Around 1% of the membership is U25.
+
 ```{r, echo = FALSE}
-DT::datatable(tbl_membership_by_fed)
+tbl_membership_by_fed %>% 
+  select(-Clubs) %>% 
+  head(9) %>% 
+  gather(key,val, -Federation) %>% 
+  mutate(key = fct_reorder(key, desc(val))) %>% 
+  ggplot(aes(x = Federation, y = val, fill = key)) + 
+  geom_bar(stat = 'identity', position = 'dodge') + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
+The summary table of membership types by Federation below shows the proportion compared to total members in each Federation (for raw numbers see main text).
+
+**NumUnique is the difference between NumPlayers and Num2ndClub** - an estimate of the number of unique players in the CA, by subtracting those who are members of other clubs.
+```{r, echo = FALSE}
+DT::datatable(tbl_membership_by_fed %>% 
+                mutate(`%Unique` = scales::percent(NumUnique/NumPlayers, accuracy = 1),
+                       `%Retired` = scales::percent(NumRetired/NumPlayers, accuracy = 1),
+                       `%Active` = scales::percent(NumActive/NumPlayers, accuracy = 1),
+                       `%U25` = scales::percent(NumU25s/NumPlayers, accuracy = 1)
+                       ) %>% 
+                select(1:3,9:12),
+              options = list(dom = 't'))
+```
+
 
 The majority of clubs have 2 or fewer courts, are in use 5+ days per week, and are yet to hit membership capacity. Average club membership is `r mean(df_clean$n_MemTotal) %>% round(1)`, median `r median(df_clean$n_MemTotal) %>% round(1)`. Most clubs, despite low membership wastage, face recruitment issues of some sort - seeing little return on volunteer effort, low conversion to full membership or problems reaching a younger demographic. There are a number of recruitment initiatives from some clubs which differ from the typical 'single open day in early season with follow-up beginners course', which could be promoted.
 
@@ -69,14 +102,15 @@ tbl_GC_vs_AC_by_fed  %>%
 
 Around a quarter of clubs (mostly in SWF, NWF, YCF) play Short Croquet, and there are approximately `r tbl_taking_up_ac$NumSCPlayers %>% last()` people who play Short Croquet.
 
-### Officials, competiions and clothing
+### Officials, competitions and clothing
 
 Clubs reported on the number of coaches and AC/GC referees within their club; the number of clubs without these respectively were `r df_clean %>% filter(n_CoachesActive ==0) %>% nrow`/`r df_clean %>% filter(n_RefsQualRegAC ==0) %>% nrow`/`r df_clean %>% filter(n_RefsQualRegGC ==0) %>% nrow`, and these tended to be in smaller or more remote clubs. 
 
+Most clubs have a handicapper of some sort with only `r tbl_handicappers %>% adorn_totals %>% tail(1) %>% pull(wo_HCer)` without (`r scales::percent(sum(tbl_handicappers$wo_HCer)/nrow(df_clean))`). There are a reasonable number of registered handicappers throughout the Federations.
 
 Around `r tbl_enters_CA_events$Percentage %>% last()` of members enter CA Fixtures Calendar events, with a higher percentage in the East Anglian and East Midlands Federations, and lower in the West Midlands. 
 
-The section on club handicappers and whites are yet to be analysed.
+The section on whites is yet to be analysed.
 
 
 ### Marketing and External Engagement
@@ -91,30 +125,31 @@ The final free text section revealed a wide range of ways in which clubs thought
 
 In the feedback section, many clubs highlighted that their 'typical' members feel the CA offers poor value for money, and is irrelevant to them. Further suggestions ranged from Gazette content and delivery, to addressing common issues faced by clubs.
 
-## Tips and tricks
-* Use the left hand table of contents to expand particular sections
-* Tables in this report are interactive - click on a column heading to sort asc/desc, and use the search box to filter
-
 ## Notes on report
-* **All figures presented are provisional and subject to change following quality assurance.**
-* ASSUMPTION: all data submitted by clubs was correct and that data entry has been correct (but happy to be corrected).
+* **These numbers represent only respondees and not all clubs. Limited quality assurance has taken place, on presentation rather than on numbers.**
+* ASSUMPTION: all data submitted by clubs was correct and that data entry has been correct (corrections have gradually taken place as errors discovered).
 * Imputed some data where reasonable to do so - e.g. taken midpoints, taken upper limit of range.
 * Tried to keep transcriptions as honest as possible; some minor typo fixes.
 * Some numbers represent best estimates by clubs rather than actual numbers.
-* Some data returns did not make sense (e.g. no. GC only + no. AC only + no. GC & AC players not equalling total or active no. members in the club, total no. of qualified coaches > no. of active coaches, or total courts not tallying). A few corrections have been made where obvious. **No attempt has been made to correct these figures.**
+* Some data returns did not make sense (e.g. no. GC only + no. AC only + no. GC & AC players not equalling total or active no. members in the club, total no. of qualified coaches > no. of active coaches, or total courts not tallying). A few corrections have been made where obvious. **No attempt has been made to fully correct these figures.**
 
 
 # General
 ## Respondents by Federation
-This report currently includes duplicated entries for Worthing and Pinchbeck, and is missing an entry from Brodsworth Hall.
-
 ```{r by-federation, echo = FALSE, warning = FALSE}
 DT::datatable(df_clean %>% 
                 count(Federation) %>% 
-                adorn_totals)
+                adorn_totals,
+              options = list(dom = 't'))
 ```
 
-In total, including the unresolved issues above, we had **`r nrow(df_clean)-2 + 1` returns out of 193 clubs, a return rate of `r scales::percent((nrow(df_clean)-1)/193)`**.
+In total, including the unresolved issues above, we had **`r nrow(df_clean)` returns out of 210 Full/Affiliate clubs, a return rate of `r scales::percent((nrow(df_clean))/210)`**.
+
+Of the clubs who did not respond, most are small. Notable non-respondents were Camerton & Peasedown, Hampstead Heath, and Swindon. No analysis has been completed on why they did not respond - it may be worth a quick call for Council Fed reps to follow up.
+
+```{r echo = FALSE, warning = FALSE, message = FALSE}
+DT::datatable(readr::read_csv('data/nonresponses.csv'))
+```
 
 # Courts, membership and recruitment
 
@@ -123,13 +158,22 @@ We asked clubs to indicate whether they were a croquet-only club or whether they
 
 ```{r croquet-only, echo = FALSE, warning = FALSE}
 DT::datatable(df_clean %>% 
-                count(CroquetOnly, sort = TRUE)
+                count(CroquetOnly, sort = TRUE) %>% 
+                mutate(Pctge = scales::percent(n/sum(n)))
               )
 ```
 
 
 ## Club ownership
-We asked clubs to indicate who owns the land their club is situated on.
+We asked clubs to indicate who owns the land their club is situated on. National percentages are presented below, with regional breakdowns in the graph.
+
+```{r echo=FALSE}
+df_clean %>% 
+  mutate(`Club Land Ownership` = str_replace(`Club Land Ownership`, " \\(.*\\)", "")) %>% 
+  count(`Club Land Ownership`) %>% 
+  mutate(`Pctge` = scales::percent(n/sum(n))) %>% 
+  DT::datatable(options = list(dom = 't'))
+```
 ```{r club-ownership, echo = FALSE, warning = FALSE}
 g_club_land_ownership + coord_flip() + 
   theme(legend.position = "bottom",
@@ -152,17 +196,26 @@ The raw numbers are plotted below, which shows that the majority of clubs in the
 df_clean %>% 
   count(NumCourtsTotal) %>% 
   mutate(Pctge = scales::percent(n/sum(n))) %>% 
-  DT::datatable()
+  DT::datatable(options = list(dom = 't'))
 ```
 
 Note that a small number of clubs have made an error in the number of courts declared - the total number does not equal to the sum of their full and half courts.
 
 ```{r num-courts-error, echo = FALSE, warning = FALSE}
-DT::datatable(df_incorrect_court_count)
+DT::datatable(df_incorrect_court_count, options = list(dom = 't'))
 ```
 
 ## Number of days club is in use.
-Clubs were asked how many days their club is in use during a typical week - this was to determine whether clubs which self declare as 'full' could in fact accommodate more members through additional sessions. The chart below shows the breakdown by Federation. 
+Clubs were asked how many days their club is in use during a typical week - this was to determine whether clubs which self declare as 'full' could in fact accommodate more members through additional sessions. The national breakdown is below:
+
+```{r echo=FALSE}
+df_clean %>%
+  count(n_DaysClubInUse) %>% 
+  mutate(Pctge = scales::percent(n/sum(n))) %>% 
+  DT::datatable(options = list(dom = 't'))
+```
+
+The chart below shows the breakdown by Federation. 
 ```{r club-usage, echo=FALSE}
 g_club_usage + scale_x_continuous("Num Days Club in Use", labels = as.character(1:7), breaks = 1:7)
 ```
@@ -197,7 +250,7 @@ df_clean %>%
             ) %>% 
   mutate_at(5:7, as.character) %>% 
   adorn_totals() %>% 
-  DT::datatable()
+  DT::datatable(options = list(dom = 't'))
 ```
 
 ### Total membership types by Federation
@@ -206,22 +259,27 @@ We asked clubs to state their total membership at 30 Sep 2019, along with estima
 The data on the 2nd club members has been used alongisde total memberership to calculate the theoretical number of unique individuals within the CA, broken down by Federation.
 
 ```{r, echo = FALSE}
-DT::datatable(tbl_membership_by_fed)
+DT::datatable(tbl_membership_by_fed,
+              options = list(dom = 't'))
 ```
 
+Outliers: Great Dunham (the CA's newest club, 1 member), Budleigh Salterton.
+
 ### Ideal memberships
-Clubs were asked to indicate whether they were full.
+Clubs were asked to indicate whether they were full. This suggests that 15% consider themselves at or near capacity.
 ```{r, echo = FALSE}
 DT::datatable(df_clean %>% count(MemFull, sort = TRUE) %>% 
                 # spread(MemFull, n) %>% 
-                adorn_totals(where = "row"))
+                mutate(Pctge = scales::percent(n/sum(n))) %>% 
+                adorn_totals(where = "row"),
+              options = list(dom = 't'))
 ```
 
 Alongside this question, clubs were asked what the ideal number of members was for their club. Where clubs have given a numeric answer, the percentage of their 2019 membership against their target is plotted below. The number of clubs who declared that they had no memberhsip limit were set to NA and these were removed from the plot.
 
 Where they provided a numeric range, the maxima of the numeric range was taken for simplicity. 
 
-```{r membership-percentage-full, echo=FALSE}
+```{r membership-percentage-full, echo=FALSE, warning=FALSE}
 g_membership_percentage_full + facet_wrap(~Federation)
 ```
 
@@ -229,13 +287,13 @@ Including all of those who said 'yes' or 'almost', there were `r df_clean %>% fi
 
 For these clubs which have declared themselves full, we consider the distribution by Federation and how many days their club is in use.
 
-```{r}
+```{r, echo=FALSE}
 df_clean %>% 
   filter(str_detect(MemFull, regex("yes|almost", ignore_case = TRUE))) %>% 
   count(Federation, n_DaysClubInUse) %>% 
   spread(n_DaysClubInUse, n, fill = 0L) %>% 
   adorn_totals() %>% 
-  DT::datatable()
+  DT::datatable(options = list(dom = 't'))
 ```
 This shows that most of these clubs are at full capacity, with some which have potential for further expansion through additional days of play.
 
@@ -246,6 +304,9 @@ Most clubs have very few leavers each year. There were some comments from larger
 g_member_wastage + facet_wrap(~Federation) + coord_flip()
 ```
 
+Previous work has suggested that this is actually a far more complex issue than can be explored from this one simple question. Clubs expect a significant proportion who join at the beginning not to renew their membership in the second year. But those who do will generally stay for several years and it would have been useful to separate out these two types of leaver.
+
+It would be useful in future to ask why members leave, e.g. decided it wasn’t for me, moved to another area, moved to another club in the same area, health reasons, etc.
 
 ### Formal/informal structures to integrate new members
 
@@ -327,18 +388,58 @@ DT::datatable(df_recruitment_issues)
 # The balance of GC and AC
 **Note that numbers in this section may double count those who are members of multiple clubs (see section on Membership above).**
 
-## GC and AC by Federation
+Clubs were asked how many played AC only, GC only, or both, and how many GC players had picked up AC (NumConverted). They were also asked if they considered themselves to be an AC only club, GC only club, or promoted both.
 
+We let clubs decide their own definition of a GC or AC player but recognise that this can be challenging to define - someone who occasionally plays or has tried it once may be counted incorrectly. Thus the data in this section may be suspect dependent on definitions.
+
+## GC and AC by Federation
+The graph below shows the percentage and number within each Federation that are AC only, GC only or both.
 ```{r, echo = FALSE}
-DT::datatable(tbl_GC_vs_AC_by_fed)
+tbl_GC_vs_AC_by_fed %>% 
+  head(9) %>%
+  select(1,4:6) %>% 
+  gather(key, val, -Federation) %>% 
+  group_by(Federation) %>% 
+  mutate(label = scales::percent(val/sum(val))) %>% 
+  ungroup() %>% 
+  ggplot(aes(x = fct_reorder(Federation, desc(val)), y = val, fill = key, label = label)) + 
+  geom_bar(stat = 'identity', position = 'stack') +
+  geom_text(position = position_stack(vjust = 0.5))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  xlab('Federation')
 ```
 
-This suggests that 
+This shows a regional variation in proportions of GC and AC players - regions such as NW Fed have a more even mix whilst most other Federations are dominated by GC-only players - in particular East Anglia, Southern and Croquet North. Federations such as South East and London, South West and North West have a greater proportion of players who play both codes.
 
-## GC only clubs
+Raw numbers are presented in the table below. Note there are numerical discrepancies between the total number of players and the total across the columns 'NumACOnly', 'NumGCOnly' and 'NumBoth'.
 
 ```{r, echo = FALSE}
-DT::datatable(tbl_GC_only_by_fed)
+DT::datatable(tbl_GC_vs_AC_by_fed %>% 
+                mutate(`sum(cols3-5)` = NumGCOnly + NumACOnly + NumBoth) %>% 
+                select(1:6,8,7), options = list(dom = 't'))
+```
+
+## Single code vs dual code clubs
+The majority of clubs play both codes, with a significant majority being GC only.
+
+```{r, echo = FALSE}
+tbl_GC_only_by_fed %>% 
+  head(9) %>% 
+  select(-5) %>% 
+  gather(key, val, -Federation) %>% 
+  group_by(Federation) %>% 
+  mutate(label = scales::percent(val/sum(val))) %>% 
+  ungroup() %>% 
+  ggplot(aes(x = fct_reorder(Federation, desc(val)), y = val, fill = key, label = label)) + 
+  geom_bar(stat = 'identity', position = 'stack') +
+  geom_text(position = position_stack(vjust = 0.5))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  xlab('Federation')
+```
+
+
+```{r, echo = FALSE}
+DT::datatable(tbl_GC_only_by_fed, options = list(dom = 't'))
 ```
 
 
@@ -348,7 +449,7 @@ Clubs were asked whether they played Short Croquet, how many members played Shor
 **Note that numbers in this section may double count those who are members of multiple clubs (see section on Membership above).**
 
 ```{r, echo = FALSE}
-DT::datatable(tbl_taking_up_ac)
+DT::datatable(tbl_taking_up_ac, options = list(dom = 't'))
 ```
 
 This suggests that around a quarter of clubs currently play Short Croquet, and that these are mostly distributed in the North West, Yorkshire and South West Federations. There are around 600 existing Short Croquet players, and around 400 players who have started as GC players before picking up AC.
@@ -388,15 +489,30 @@ DT::datatable(df_convert_GC_to_AC %>%
 # Officials, competitions and clothing
 The number of active coaches and referees by Federation is presented below. Note that for AC, assistant referees are included in this figure.
 ```{r, echo = FALSE}
-DT::datatable(tbl_coaches_referees)
+DT::datatable(tbl_coaches_referees, options = list(dom = 't'))
 ```
 
-The number of clubs who declared themselves without any active coaches was `r df_clean %>% filter(n_CoachesActive ==0) %>% nrow`, without any AC referees (inc assistant refs) was `r df_clean %>% filter(n_RefsQualRegAC ==0) %>% nrow`, without GC refereees was `r df_clean %>% filter(n_RefsQualRegGC ==0) %>% nrow`, and without handicappers is TO BE COMPLETED.
+The number of clubs who declared themselves without any active coaches was `r df_clean %>% filter(n_CoachesActive ==0) %>% nrow`, without any AC referees (inc assistant refs) was `r df_clean %>% filter(n_RefsQualRegAC ==0) %>% nrow`, without GC refereees was `r df_clean %>% filter(n_RefsQualRegGC ==0) %>% nrow`, and without handicappers is `r df_clean %>% filter(HC_AC_reg_Q + HC_AC_inf_Q + HC_GC_reg_Q + HC_GC_inf_Q + HC_both_Q == 0) %>% nrow`.
 
-These numbers will be useful, if used in conjunction with CA figures, to assess our current supply of coaches and referees, and set suitable policies on this.
+These numbers will be useful, if used in conjunction with CA figures, to assess our current supply of coaches and referees, and set suitable policies on this. Data such as the average number of coaches per club or no. players in the federation per coach would help improve this section.
 
 ## Club handicappers
-To be completed.
+Clubs were asked if they had CA registered active handicappers, for AC and GC. They were also given the option to indicate if they had an individual who covered both codes (where the individual is not necessarily CA registered), and a free text section to indicate otherwise. This was coded and cleaned, and summarised by Federation in the table below. 
+
+Those who used the free text section were coded separately into the 'Informal' responses. 
+
+* wo_HCer: Club without any handicapper
+* AC_Reg: Registered AC handicapper
+* AC_Inf: Informal AC handicapper etc
+* Both_Reg: An individual covers both codes and is CA registered in both codes
+* Both_Eith: An individual covers both codes but is CA registered in only one of the two.
+* Both_Inf: An individual covers both codes but is not CA registered
+
+```{r handicappers, echo=FALSE}
+tbl_handicappers %>% 
+  adorn_totals() %>% 
+  DT::datatable(options = list(dom = 't'))
+```
 
 ## Competitions
 Clubs were asked what sort of competitions/tournaments they run at their club - this was to assess the awareness and prevalence of competitive play.
@@ -405,7 +521,7 @@ Clubs were asked what sort of competitions/tournaments they run at their club - 
 g_competitions + coord_flip()
 ```
 
-Most clubs run internal season-long competitions and enter Federation events, with a large number also running single day or weekend events. Around 1/3 of the clubs organise CA Fixtures Calendar events or participates in CA national competitions.
+Most clubs run internal season-long competitions and enter Federation events, with a large number also running single day or weekend events. Around 1/3 of the clubs organise CA Fixtures Calendar events or participates in CA national competitions. It should be added that Federation singles tournaments make up an important number of competitive fixtures which was not included in this survey.
 
 Other forms listed below:
 ```{r, echo = FALSE}
@@ -420,14 +536,16 @@ This 'Other' section indicates that a number of clubs play in inter-club friendl
 ## Numbers entering CA Fixtures Calendar tournaments
 **Note that numbers in this section may double count those who are members of multiple clubs (see section on Membership above).**
 
+This data shows the percentage of members in each Federation who enters CA Fixtures - as a proxy of how many are competing regularly on the tournament circuit. This indicates some regional variation, with West Midlands and Yorkshire players having the lowest proportions of players entering CA Fixtures. This could point to strong Federation leagues which offers competitive play - more work to extract insights here would be useful.
+
 ```{r, echo = FALSE}
-DT::datatable(tbl_enters_CA_events)
+DT::datatable(tbl_enters_CA_events, options = list(dom = 't'))
 ```
 
 Around `r tbl_enters_CA_events$Percentage %>% last()` of club members overall take part in CA Fixtures Calendar competitions, with East Midlands and East Anglian Federations above average, and West Midlands well below the national average.
 
 ## Wearing of whites rule
-To be completed.
+Analysis of responses to be completed.
 
 # Marketing and external engagement
 ## How do clubs market themselves

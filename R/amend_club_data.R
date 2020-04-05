@@ -63,6 +63,9 @@ df_temp$`Of the total, how many are active players?`[str_detect(df_temp$`Club Na
 #' Cheltenham - following email chain to clarify
 df_temp$`Approximately how many of these are of retirement age?`[str_detect(df_temp$`Club Name`, "Cheltenham")] <- 158
 
+#' Charlton CC - number of u25 members should be 0 not 9
+df_temp$`How many young person members do you have?`[str_detect(df_temp$`Club Name`, "Charlton")] <- 0
+
 # Known issues and assumptions to sort out ----
 #' Imputed some data where reasonable to do so - e.g. taken midpoints, taken upper limit of range was two numbers
 #' Tried to keep transcriptions as honest as possible; some minor typo fixes
@@ -75,14 +78,18 @@ df_temp <- df_temp %>%
   filter(!`Club Name` %in% c("I have to fill this in to see the form"))
 
 df_temp <- df_temp %>% 
-  filter(!(str_detect(`Club Name`, "Pinchbeck") & # Pinchbeck - 2 duplicates where person completing is NOT chair
-             !str_detect(`Your position at your club`, "Chair")
+  filter(!(str_detect(`Club Name`, "Pinchbeck") & # Pinchbeck - 2 duplicates where person completing is NOT Terry Sparks
+             !str_detect(`Your name`, "TERREY SPARKS")
            )
          ) %>% 
   filter(!(str_detect(`Club Name`, "Worthing") & # Worthing - 1 duplicate where person completing is NOT chair
              !str_detect(`Your position at your club`, "Chair")
            )
-         )
+         ) %>% 
+  filter(
+    !(str_detect(`Club Name`, "Llanidloes") & # Llanidloes - 1 duplicate, keep the one NOT submitted by Patricia Lindsay
+        !str_detect(`Your name`, "Patricia Lindsay"))
+  )
 
 #' Need to link to unique name and clubDbID on CA system
 

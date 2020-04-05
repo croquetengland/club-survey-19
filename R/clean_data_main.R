@@ -71,7 +71,7 @@ df_clean <- df_clean %>%
 df_clean <- df_clean %>% 
   mutate(NumCourtsTotal = as.factor(
     ifelse(n_CourtsTotal >5, 
-           "5+", 
+           "6+", 
            n_CourtsTotal)
     )
   )
@@ -137,7 +137,7 @@ df_clean <- df_clean %>%
   mutate(NumMemIdeal = as.integer(NumMemIdeal)) %>% 
   mutate(NumMemIdeal = ifelse(NumMemIdeal %in% string1, NA, NumMemIdeal))
 
-# Wastage
+# Wastage ----
 df_clean <- df_clean %>%
   mutate(NumMemWastage  = case_when(
     n_MemWastage > 0 & n_MemWastage <=5 ~ "5 or fewer",
@@ -146,3 +146,52 @@ df_clean <- df_clean %>%
     TRUE ~ "Not Known"
   )) %>% 
   mutate(NumMemWastage = factor(NumMemWastage, levels = c("5 or fewer", "5 to 10", "10 or more", "Not Known")))
+
+# Handicapper ----
+stringACreg <- c("My club has a separate active registered Club Handicapper for AC only")
+stringGCreg <- c("My club has a separate active registered Club Handicapper for GC only")
+stringACinformalOth <- c(
+  "AC Informal handicapper",
+  "2 each for GC and AC",
+  "Team of 3 who looks after both codes",
+  "We have a committee of 3",
+  "We also have an AC handicapper, although appears not registered",
+  "No one registered, but the club coach does handicapping.",
+  "one for each, don't think they're registered",
+  "We have one non registered handicapper who is a member of another club.",
+  "We have two members sharing the role.")
+stringGCinformalOth <- c(
+  "2 each for GC and AC",
+  "2 handicappers for the club(GC) but not registered",
+  "Active Club Handicapper for GC only",
+  "GC not handicapped",
+  "GC only, not registered",
+  "No one registered, but the club coach does handicapping.",
+  "one for each, don't think they're registered",
+  "One individual who looks after GC",
+  "Team of 3 who looks after both codes",
+  "We have a committee of 3",
+  "We have one non registered handicapper who is a member of another club.",
+  "We have two members sharing the role.",
+  "We made a start on handicapping GC this last season")
+stringBoth <- c("My club has one individual who looks after both codes")
+
+df_clean <- df_clean %>% 
+  mutate(
+    HC_AC_reg_Q = ifelse(
+      grepl(paste(stringACreg, collapse = "|"), x = `Does your club have an active registered club handicapper(s)?`, ignore.case = T),
+      T, F),
+    HC_AC_inf_Q = ifelse(
+      grepl(paste(stringACinformalOth, collapse = "|"), x = `Does your club have an active registered club handicapper(s)?`, ignore.case = T),
+      T, F),
+    HC_GC_reg_Q = ifelse(
+      grepl(paste(stringGCreg, collapse = "|"), x = `Does your club have an active registered club handicapper(s)?`, ignore.case = T),
+      T, F),
+    HC_GC_inf_Q = ifelse(
+      grepl(paste(stringGCinformalOth, collapse = "|"), x = `Does your club have an active registered club handicapper(s)?`, ignore.case = T),
+      T, F),
+    HC_both_Q = ifelse(
+      grepl(paste(stringBoth, collapse = "|"), x = `Does your club have an active registered club handicapper(s)?`, ignore.case = T),
+      T, F)
+      )
+

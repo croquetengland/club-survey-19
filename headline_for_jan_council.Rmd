@@ -40,7 +40,7 @@ This is the first club-level survey conducted by the Croquet Association (CA), w
 
 ###Courts, Membership and Recruitment
 
-`r nrow(df_clean)` of 193 clubs (`r scales::percent((nrow(df_clean)-1)/193)`) submitted a return, representing `r tbl_membership_by_fed$NumPlayers %>% last()` total members: `r tbl_membership_by_fed$NumRetired %>% last()` retired, `r tbl_membership_by_fed$NumU25s %>% last()` U25 and `r tbl_membership_by_fed$NumUnique %>% last()` unique members (excluding 2nd club members). 
+`r nrow(df_clean)` of 193 clubs (`r scales::percent((nrow(df_clean))/193)`) submitted a return, representing `r tbl_membership_by_fed$NumPlayers %>% last()` total members: `r tbl_membership_by_fed$NumRetired %>% last()` retired, `r tbl_membership_by_fed$NumU25s %>% last()` U25 and `r tbl_membership_by_fed$NumUnique %>% last()` unique members (excluding 2nd club members). 
 
 The summary table of total memberships by Federation is presented below:
 ```{r, echo = FALSE}
